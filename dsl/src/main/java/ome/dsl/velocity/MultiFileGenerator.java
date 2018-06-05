@@ -3,11 +3,15 @@ package ome.dsl.velocity;
 import ome.dsl.SemanticType;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
 
 public class MultiFileGenerator extends Generator {
+
+    public final Logger log = LoggerFactory.getLogger(MultiFileGenerator.class);
 
     /**
      * Callback for formatting final filename

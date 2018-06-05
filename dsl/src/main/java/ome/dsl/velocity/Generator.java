@@ -15,11 +15,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidParameterException;
 import java.util.*;
 
 public abstract class Generator implements Runnable {
 
-    final Logger logger = LoggerFactory.getLogger(Generator.class);
+    final Logger log = LoggerFactory.getLogger(Generator.class);
 
     /**
      * Profile thing
@@ -39,6 +40,10 @@ public abstract class Generator implements Runnable {
     protected VelocityEngine velocity = new VelocityEngine();
 
     protected Generator(Builder builder) {
+        if (builder.template == null || !builder.template.exists()) {
+            throw new InvalidParameterException("Velocity '.vm' files missing or not set!");
+        }
+
         this.profile = builder.profile;
         this.omeXmlFiles = builder.omeXmlFiles;
         this.template = builder.template;
@@ -67,7 +72,7 @@ public abstract class Generator implements Runnable {
                         new FileOutputStream(destination), StandardCharsets.UTF_8))) {
             template.merge(vc, output);
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
         }
     }
 

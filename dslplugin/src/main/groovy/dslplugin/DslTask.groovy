@@ -50,6 +50,9 @@ class DslTask extends DefaultTask {
     }
 
     MultiFileGenerator.Builder createMultiFileGen() {
+        logger.info("Using MultiFileGenerator")
+        logger.info("outputPath set: $outputPath")
+
         def mb = new MultiFileGenerator.Builder()
         mb.outputDir = outputPath
         mb.fileFormatter = new MultiFileGenerator.FileNameFormatter() {
@@ -62,6 +65,9 @@ class DslTask extends DefaultTask {
     }
 
     SingleFileGenerator.Builder createSingleFileGen() {
+        logger.info("Using SingleFileGenerator")
+        logger.info("outFile set: $outFile")
+
         def b = new SingleFileGenerator.Builder()
         b.outFile = outFile
         return b

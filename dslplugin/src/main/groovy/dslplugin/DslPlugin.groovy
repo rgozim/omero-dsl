@@ -3,6 +3,7 @@ package dslplugin
 import org.apache.velocity.runtime.RuntimeConstants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 
 class DslPlugin implements Plugin<Project> {
 
@@ -41,7 +42,14 @@ class DslPlugin implements Plugin<Project> {
 
             // Assign property values to task inputs
             project.afterEvaluate {
-                def props = configureVelocity(project)
+                // Assign default logger if not set
+                VelocityExtension extension = project.dsl.velocity;
+                if (extension.hasProperty("logger_class_name")) {
+                    extension.logger_class_name = project.getLogger()
+                            .getClass().getName()
+                }
+
+                Properties props = configureVelocity(extension)
                 task.velocityProps = props
                 task.template = determineTemplateFileLocation(props, info.template)
                 task.omeXmlFiles = info.omeXmlFiles
@@ -50,8 +58,10 @@ class DslPlugin implements Plugin<Project> {
                 task.formatOutput = info.formatOutput
             }
 
-            // Ensure the dsltask runs before compileJava
-            project.tasks.getByName("compileJava").dependsOn(taskName)
+            if (project.plugins.hasPlugin(JavaPlugin)) {
+                // Ensure the dsltask runs before compileJava
+                project.tasks.getByName("compileJava").dependsOn(taskName)
+            }
         }
     }
 
@@ -72,26 +82,28 @@ class DslPlugin implements Plugin<Project> {
         return new File(templateDir, templateName)
     }
 
-    static Properties configureVelocity(Project project) {
-        final def props = new Properties()
-        final def extension = project.dsl.velocity
 
-        props.setProperty(RuntimeConstants.RUNTIME_LOG_NAME,
-                project.getLogger().getClass().getName())
+    static Properties configureVelocity(VelocityExtension extension) {
+        final def props = new Properties()
+
+        if (extension.hasProperty('logger_class_name')) {
+            props.setProperty(RuntimeConstants.RUNTIME_LOG_NAME,
+                    extension.logger_class_name)
+        }
 
         if (extension.hasProperty('resource_loader')) {
             props.setProperty(RuntimeConstants.RESOURCE_LOADER,
-                    extension.resource_loader as String)
+                    extension.resource_loader)
         }
 
         if (extension.hasProperty('file_resource_loader_path')) {
             props.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH,
-                    extension.file_resource_loader_path as String)
+                    extension.file_resource_loader_path)
         }
 
         if (extension.hasProperty('file_resource_loader_cache')) {
             props.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_CACHE,
-                    extension.file_resource_loader_cache as String)
+                    String.valueOf(extension.file_resource_loader_cache))
         }
 
         extension.resource_loader_class.each { String k, String v ->
