@@ -4,22 +4,16 @@ import ome.dsl.SemanticType
 import ome.dsl.velocity.MultiFileGenerator
 import ome.dsl.velocity.SingleFileGenerator
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
 class DslTask extends DefaultTask {
 
     @Input
     String profile = "psql"
 
-    @InputFile
+    @Input
     File template
 
     @InputFiles
@@ -34,13 +28,24 @@ class DslTask extends DefaultTask {
     File outFile
 
     @Input
+    @Optional
     Closure formatOutput
 
     @Input
+    @Optional
     Properties velocityProps
 
     @TaskAction
     def apply() {
+        if (omeXmlFiles.isEmpty()) {
+            throw new GradleException("No .ome.xml files found")
+        }
+
+        // Validate
+        if (!template || template.isAbsolute()) {
+            throw new GradleException("Absolute paths are unsupported for template: ${template}")
+        }
+
         def builder = outputPath != null ? createMultiFileGen() : createSingleFileGen()
         builder.omeXmlFiles = omeXmlFiles as List
         builder.profile = profile
@@ -51,7 +56,7 @@ class DslTask extends DefaultTask {
 
     MultiFileGenerator.Builder createMultiFileGen() {
         logger.info("Using MultiFileGenerator")
-        logger.info("outputPath set: $outputPath")
+        logger.info("outputPath set: ${outputPath}")
 
         def mb = new MultiFileGenerator.Builder()
         mb.outputDir = outputPath
@@ -66,12 +71,11 @@ class DslTask extends DefaultTask {
 
     SingleFileGenerator.Builder createSingleFileGen() {
         logger.info("Using SingleFileGenerator")
-        logger.info("outFile set: $outFile")
+        logger.info("outFile set: ${outFile}")
 
         def b = new SingleFileGenerator.Builder()
         b.outFile = outFile
         return b
     }
-
 
 }

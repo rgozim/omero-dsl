@@ -13,9 +13,12 @@ class DslPlugin implements Plugin<Project> {
      */
     final def GROUP = 'omero'
 
+    Properties velocityProps
+
     @Override
     void apply(Project project) {
         setupDsl(project)
+        configureVelocity(project)
         configJavaTasks(project)
     }
 
@@ -30,8 +33,18 @@ class DslPlugin implements Plugin<Project> {
         project.dsl.extensions.add("generate", project.container(DslOperation))
     }
 
+    void configureVelocity(final Project project) {
+        project.afterEvaluate {
+            VelocityExtension ve = project.dsl.velocity
+            if (!ve.logger_class_name) {
+                ve.logger_class_name = project.getLogger().getClass().getName()
+            }
+            velocityProps = createVelocityProperties(ve)
+        }
+    }
+
     void configJavaTasks(final Project project) {
-        project.dsl.generate.all { info ->
+        project.dsl.generate.all { DslOperation info ->
             def taskName = "process${info.name.capitalize()}"
 
             // Create task and assign group name
@@ -42,16 +55,8 @@ class DslPlugin implements Plugin<Project> {
 
             // Assign property values to task inputs
             project.afterEvaluate {
-                // Assign default logger if not set
-                VelocityExtension extension = project.dsl.velocity;
-                if (extension.hasProperty("logger_class_name")) {
-                    extension.logger_class_name = project.getLogger()
-                            .getClass().getName()
-                }
-
-                Properties props = configureVelocity(extension)
-                task.velocityProps = props
-                task.template = determineTemplateFileLocation(props, info.template)
+                task.velocityProps = velocityProps
+                task.template = new File(info.template)
                 task.omeXmlFiles = info.omeXmlFiles
                 task.outputPath = info.outputPath
                 task.outFile = info.outFile
@@ -83,7 +88,7 @@ class DslPlugin implements Plugin<Project> {
     }
 
 
-    static Properties configureVelocity(VelocityExtension extension) {
+    static Properties createVelocityProperties(VelocityExtension extension) {
         final def props = new Properties()
 
         if (extension.logger_class_name) {

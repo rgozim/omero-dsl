@@ -40,7 +40,7 @@ public abstract class Generator implements Runnable {
     protected VelocityEngine velocity = new VelocityEngine();
 
     protected Generator(Builder builder) {
-        if (builder.template == null || !builder.template.exists()) {
+        if (builder.template == null) {
             throw new InvalidParameterException("Velocity '.vm' files missing or not set!");
         }
 
@@ -90,7 +90,8 @@ public abstract class Generator implements Runnable {
 
     String findTemplate() {
         String resPath = (String) velocity.getProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH);
-        if (resPath != null && (resPath.isEmpty() || resPath.equals("."))) {
+        log.debug(resPath);
+        if (resPath == null || (resPath.isEmpty() || resPath.equals("."))) {
             return template.toString();
         } else {
             return template.getName();
