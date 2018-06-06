@@ -86,28 +86,30 @@ class DslPlugin implements Plugin<Project> {
     static Properties configureVelocity(VelocityExtension extension) {
         final def props = new Properties()
 
-        if (extension.hasProperty('logger_class_name')) {
+        if (extension.logger_class_name) {
             props.setProperty(RuntimeConstants.RUNTIME_LOG_NAME,
                     extension.logger_class_name)
         }
 
-        if (extension.hasProperty('resource_loader')) {
+        if (extension.resource_loader) {
             props.setProperty(RuntimeConstants.RESOURCE_LOADER,
                     extension.resource_loader)
         }
 
-        if (extension.hasProperty('file_resource_loader_path')) {
+        if (extension.file_resource_loader_path) {
             props.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH,
                     extension.file_resource_loader_path)
         }
 
-        if (extension.hasProperty('file_resource_loader_cache')) {
+        if (extension.file_resource_loader_cache) {
             props.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_CACHE,
-                    String.valueOf(extension.file_resource_loader_cache))
+                    extension.file_resource_loader_cache as String)
         }
 
-        extension.resource_loader_class.each { String k, String v ->
-            props.setProperty(k, v)
+        if (extension.resource_loader_class) {
+            extension.resource_loader_class.each { String k, String v ->
+                props.setProperty(k, v)
+            }
         }
 
         return props

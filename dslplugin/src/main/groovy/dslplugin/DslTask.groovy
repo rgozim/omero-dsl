@@ -33,10 +33,10 @@ class DslTask extends DefaultTask {
     @Optional
     File outFile
 
-    @Internal
+    @Input
     Closure formatOutput
 
-    @Internal
+    @Input
     Properties velocityProps
 
     @TaskAction
