@@ -11,8 +11,6 @@ import java.util.Collection;
 
 public class MultiFileGenerator extends Generator {
 
-    public final Logger log = LoggerFactory.getLogger(MultiFileGenerator.class);
-
     /**
      * Callback for formatting final filename
      */

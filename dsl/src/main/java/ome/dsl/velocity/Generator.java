@@ -5,6 +5,7 @@ import ome.dsl.SemanticTypeProcessor;
 import ome.dsl.sax.MappingReader;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
@@ -40,8 +41,16 @@ public abstract class Generator implements Runnable {
     protected VelocityEngine velocity = new VelocityEngine();
 
     protected Generator(Builder builder) {
+        if (builder.profile == null || builder.profile.isEmpty()) {
+            throw new InvalidParameterException("Generator.profile cannot be null or empty, default is 'psql'");
+        }
+
         if (builder.template == null) {
             throw new InvalidParameterException("Velocity '.vm' files missing or not set!");
+        }
+
+        if (builder.omeXmlFiles == null || builder.omeXmlFiles.isEmpty()) {
+            throw new InvalidParameterException("No '.ome.xml' files supplied!");
         }
 
         this.profile = builder.profile;

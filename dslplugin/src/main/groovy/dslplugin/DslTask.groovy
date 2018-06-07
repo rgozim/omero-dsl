@@ -3,6 +3,7 @@ package dslplugin
 import ome.dsl.SemanticType
 import ome.dsl.velocity.MultiFileGenerator
 import ome.dsl.velocity.SingleFileGenerator
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
@@ -27,11 +28,9 @@ class DslTask extends DefaultTask {
     @Optional
     File outFile
 
-    @Input
     @Optional
     Closure formatOutput
 
-    @Input
     @Optional
     Properties velocityProps
 
