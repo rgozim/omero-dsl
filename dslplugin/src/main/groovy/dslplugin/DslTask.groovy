@@ -3,11 +3,18 @@ package dslplugin
 import ome.dsl.SemanticType
 import ome.dsl.velocity.MultiFileGenerator
 import ome.dsl.velocity.SingleFileGenerator
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 
 class DslTask extends DefaultTask {
 
@@ -16,9 +23,6 @@ class DslTask extends DefaultTask {
 
     @Input
     File template
-
-    @InputFiles
-    FileTree omeXmlFiles
 
     @OutputDirectory
     @Optional
@@ -33,6 +37,15 @@ class DslTask extends DefaultTask {
 
     @Optional
     Properties velocityProps
+
+    @SkipWhenEmpty
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    FileCollection omeXmlFiles
+
+    void omeXmlFiles(FileCollection omeXmlFiles) {
+        this.omeXmlFiles = this.omeXmlFiles + omeXmlFiles
+    }
 
     @TaskAction
     def apply() {

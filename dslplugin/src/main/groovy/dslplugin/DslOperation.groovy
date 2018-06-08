@@ -1,13 +1,13 @@
 package dslplugin
 
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileCollection
 
 class DslOperation {
     final String name
 
     String template
 
-    FileTree omeXmlFiles
+    FileCollection omeXmlFiles
 
     File outputPath
 
