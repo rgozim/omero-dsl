@@ -31,7 +31,7 @@ public abstract class Generator implements Runnable {
     /**
      * Collection of .ome.xml files to process
      */
-    protected List<File> omeXmlFiles;
+    protected Collection<File> omeXmlFiles;
 
     /**
      * Velocity template file name
@@ -111,14 +111,14 @@ public abstract class Generator implements Runnable {
         private String profile;
         private File template;
         private Properties properties;
-        private List<File> omeXmlFiles;
+        private Collection<File> omeXmlFiles;
 
         public Builder setProfile(String profile) {
             this.profile = profile;
             return this;
         }
 
-        public Builder setOmeXmlFiles(List<File> source) {
+        public Builder setOmeXmlFiles(Collection<File> source) {
             this.omeXmlFiles = source;
             return this;
         }

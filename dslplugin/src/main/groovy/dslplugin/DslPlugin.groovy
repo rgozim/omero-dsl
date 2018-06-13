@@ -1,62 +1,51 @@
 package dslplugin
 
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 
 class DslPlugin implements Plugin<Project> {
 
-    /**
-     * Sets the group name for the DSLPlugin tasks to reside in.
-     * i.e. In a terminal, call `./gradlew tasks` to list tasks in their groups in a terminal
-     */
-    final def GROUP = 'omero'
-
-    Properties velocityProps
+    DslPluginBase basePlugin
 
     @Override
     void apply(Project project) {
         // Apply configuration base plugin
-        project.plugins.apply(DslPluginBase)
+        basePlugin = project.plugins.apply(DslPluginBase)
 
         // Now work on convention
-        configureVelocity(project)
-        configJavaTasks(project)
+        applyDefaultConfigs(project)
     }
 
-    void configureVelocity(final Project project) {
-        project.afterEvaluate {
-            velocityProps = DslPluginBase.createVelocityProperties(project.dsl.velocity)
+    /**
+     * Sets up default values for Velocity configuration
+     * @param project
+     */
+    void applyDefaultConfigs(final Project project) {
+        // Set some defaults for velocity
+        VelocityExtension ve = project.dsl.velocity
+        ve.resourceLoader = "file"
+        ve.resourceLoaderClass = ['file.resource.loader.class': FileResourceLoader.class.getName()]
+        ve.loggerClassName = project.getLogger().getClass().getName()
+        if (project.plugins.hasPlugin(JavaPlugin)) {
+            ve.fileResourceLoaderPath = "${project.sourceSets.main.output.resourcesDir}"
+        } else {
+            ve.fileResourceLoaderPath = "${project.projectDir}"
         }
-    }
 
-    void configJavaTasks(final Project project) {
-        project.dsl.generate.all { DslOperation info ->
-            def taskName = "process${info.name.capitalize()}"
+        // Convert velocity extension to Properties type
+        Properties properties = DslPluginBase.createVelocityProperties(ve)
 
-            // Create task and assign group name
-            def task = project.task(taskName, type: DslTask) {
-                group = GROUP
-                description = 'parses ome.xml files and compiles velocity template'
-            }
-
-            // Assign property values to task inputs
-            project.afterEvaluate {
-                task.velocityProps = velocityProps
-                task.template = new File(info.template)
-                task.omeXmlFiles = info.omeXmlFiles
-                task.outputPath = info.outputPath
-                task.outFile = info.outFile
-                task.formatOutput = info.formatOutput
-            }
+        // Assign default velocity config to each dsl task
+        basePlugin.dslTasks.each { task ->
+            task.velocityProps = properties
 
             if (project.plugins.hasPlugin(JavaPlugin)) {
-                // Ensure the dsltask runs before compileJava
-                project.tasks.getByName("compileJava").dependsOn(taskName)
+                // Ensure the DslTask runs before compileJava
+                project.tasks.getByPath("compileJava").dependsOn(task)
             }
         }
     }
-
-
 }
 
