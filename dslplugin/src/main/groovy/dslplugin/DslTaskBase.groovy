@@ -44,6 +44,10 @@ abstract class DslTaskBase extends DefaultTask {
         this.velocityProperties.set(properties)
     }
 
+    void setVelocityProperties(Property<Properties> properties) {
+        this.velocityProperties.set(properties)
+    }
+
     @TaskAction
     def apply() {
         VelocityEngine ve = new VelocityEngine()

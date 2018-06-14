@@ -2,7 +2,10 @@ package dslplugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.JavaPlugin
+
+import java.nio.file.Paths
 
 class DslPlugin implements Plugin<Project> {
 
@@ -22,24 +25,21 @@ class DslPlugin implements Plugin<Project> {
      * @param project
      */
     void applyDefaultConfigs(Project project) {
-        project.afterEvaluate {
-            // Set some defaults for velocity
-            VelocityExtension ve = project.dsl.velocity
-            ve.loggerClassName = project.getLogger().getClass().getName()
+        Dsl dsl = project.dsl
+        VelocityExtension ve = dsl.velocity
+
+        // Set some defaults for velocity
+        ve.loggerClassName = project.getLogger().getClass().getName()
+
+        // Assign default velocity config to each dsl task
+        basePlugin.dslTasks.each { task ->
+            task.template =  dsl.templateDir.file(task)
+            task.omeXmlFiles = dsl.mappingFiles
+            task.velocityProperties = ve.properties
+
             if (project.plugins.hasPlugin(JavaPlugin)) {
-                ve.fileResourceLoaderPath = "${project.sourceSets.main.output.resourcesDir}"
-            } else {
-                ve.fileResourceLoaderPath = "${project.projectDir}/src/main/resources"
-            }
-
-            // Assign default velocity config to each dsl task
-            basePlugin.dslTasks.each { task ->
-                task.velocityProperties = ve.properties.get()
-
-                if (project.plugins.hasPlugin(JavaPlugin)) {
-                    // Ensure the DslTask runs before compileJava
-                    project.tasks.getByPath("compileJava").dependsOn(task)
-                }
+                // Ensure the DslTask runs before compileJava
+                project.tasks.getByPath("compileJava").dependsOn(task)
             }
         }
     }
