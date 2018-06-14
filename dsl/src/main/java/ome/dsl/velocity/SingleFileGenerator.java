@@ -1,7 +1,6 @@
 package ome.dsl.velocity;
 
 import ome.dsl.SemanticType;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 
 import java.io.File;
@@ -35,9 +34,8 @@ public class SingleFileGenerator extends Generator {
         VelocityContext vc = new VelocityContext();
         vc.put("types", types);
 
-        // Get the template file
-        Template t = velocity.getTemplate(findTemplate());
-        writeToFile(vc, t, prepareOutput(outFile));
+        // Do the work
+        parseTemplate(vc, template, outFile);
     }
 
     public static class Builder extends Generator.Builder {
@@ -53,5 +51,4 @@ public class SingleFileGenerator extends Generator {
             return new SingleFileGenerator(this);
         }
     }
-
 }

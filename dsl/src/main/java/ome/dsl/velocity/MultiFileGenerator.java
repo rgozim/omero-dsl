@@ -1,10 +1,7 @@
 package ome.dsl.velocity;
 
 import ome.dsl.SemanticType;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -41,17 +38,14 @@ public class MultiFileGenerator extends Generator {
             return; // Skip when no files, otherwise we overwrite.
         }
 
-        // Get the template file
-        Template t = velocity.getTemplate(findTemplate());
-
         // Velocity process the semantic types
         for (SemanticType st : types) {
             VelocityContext vc = new VelocityContext();
             vc.put("type", st);
 
+            // Format the final filename using callback
             String filename = formatFileName.format(st);
-            File destination = new File(outputDir, filename);
-            writeToFile(vc, t, prepareOutput(destination));
+            parseTemplate(vc, template, new File(outputDir, filename));
         }
     }
 

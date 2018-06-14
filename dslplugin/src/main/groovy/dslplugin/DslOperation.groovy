@@ -7,7 +7,7 @@ class DslOperation {
 
     String profile = "psql"
 
-    String templateName
+    File template
 
     FileCollection omeXmlFiles
 

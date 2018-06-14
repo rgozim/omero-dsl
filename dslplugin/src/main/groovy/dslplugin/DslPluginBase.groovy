@@ -1,6 +1,5 @@
 package dslplugin
 
-import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -11,14 +10,10 @@ class DslPluginBase implements Plugin<Project> {
      */
     List<DslTaskBase> dslTasks = new ArrayList<>()
 
-    VelocityEngine velocityEngine = new VelocityEngine()
 
     @Override
     void apply(Project project) {
         setupDsl(project)
-
-        // Apply and init velocityEngine
-        applyVelocityProperties(project)
 
         // Default configure dsl tasks
         configureDslTasks(project)
@@ -37,17 +32,6 @@ class DslPluginBase implements Plugin<Project> {
 
         // Add NamedDomainObjectContainer for java configs
         dsl.extensions.add("generate", project.container(DslOperation))
-    }
-
-    def applyVelocityProperties(Project project) {
-        // Initialise the velocity engine with default settings
-        VelocityExtension ve = project.dsl.velocity
-
-        project.afterEvaluate {
-            velocityEngine.init(ve.properties.get())
-        }
-
-        velocityEngine.evaluate()
     }
 
     def configureDslTasks(Project project) {
@@ -71,9 +55,9 @@ class DslPluginBase implements Plugin<Project> {
                 task.group = "omero"
                 task.description = "parses ome.xml files and compiles velocity template"
                 task.profile = info.profile
-                task.templateName = info.templateName
+                task.template = info.template
                 task.omeXmlFiles = info.omeXmlFiles
-                task.velocityEngine = velocityEngine
+                task.velocityProperties = project.dsl.velocity.properties.get()
 
                 // Add dsl task to list of tasks
                 dslTasks.add(task)

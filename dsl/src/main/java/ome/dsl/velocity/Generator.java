@@ -3,20 +3,29 @@ package ome.dsl.velocity;
 import ome.dsl.SemanticType;
 import ome.dsl.SemanticTypeProcessor;
 import ome.dsl.sax.MappingReader;
-import org.apache.velocity.Template;
+import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class Generator implements Runnable {
 
@@ -77,36 +86,41 @@ public abstract class Generator implements Runnable {
         return new SemanticTypeProcessor(profile, typeMap).call();
     }
 
-    void writeToFile(VelocityContext vc, Template template, File destination) {
-        try (BufferedWriter output = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(destination), StandardCharsets.UTF_8))) {
-            template.merge(vc, output);
-        } catch (Exception e) {
+    void parseTemplate(VelocityContext vc, File template, File output) {
+        InputStream in = getTemplateStream(template);
+        OutputStream os = getOutputStream(output);
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+             BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
+
+            velocity.evaluate(vc, result,
+                    "Processing template: " + this.template.getName(), reader);
+
+        } catch (ParseErrorException e) {
+            log.error("Error parsing template", e);
+        } catch (IOException | MethodInvocationException e) {
             log.error("", e);
         }
     }
 
-    File prepareOutput(File target) {
-        if (!target.exists()) {
-            File parent = target.getParentFile();
-            if (parent != null && !parent.exists()) {
-                if (!target.getParentFile().mkdirs()) {
-                    throw new RuntimeException("Failed to create file for output");
-                }
-            }
+    private InputStream getTemplateStream(File template) {
+        InputStream in = null;
+        try {
+            in = FileUtils.openInputStream(template);
+        } catch (IOException e) {
+            log.error("Error with template:" + template.getName(), e);
         }
-        return target;
+        return in;
     }
 
-    String findTemplate() {
-        String resPath = (String) velocity.getProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH);
-        log.debug(resPath);
-        if (resPath == null || (resPath.isEmpty() || resPath.equals("."))) {
-            return template.toString();
-        } else {
-            return template.getName();
+    private OutputStream getOutputStream(File output) {
+        OutputStream os = null;
+        try {
+            os = FileUtils.openOutputStream(output);
+        } catch (IOException e) {
+            log.error("Error with output:" + output, e);
         }
+        return os;
     }
 
     public static abstract class Builder {

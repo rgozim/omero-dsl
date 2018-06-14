@@ -18,11 +18,8 @@ class DslSingleFileTask extends DslTaskBase {
 
     @Override
     Generator.Builder createFileGenerator() {
-        logger.info("Using SingleFileGenerator")
-        logger.info("outFile set: ${outFile}")
-
         def b = new SingleFileGenerator.Builder()
-        b.outFile = outFile.get().asFile
+        b.outFile = outFile.asFile.get()
         return b
     }
 }
