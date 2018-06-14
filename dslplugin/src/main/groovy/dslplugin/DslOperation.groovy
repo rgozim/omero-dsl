@@ -5,7 +5,9 @@ import org.gradle.api.file.FileCollection
 class DslOperation {
     final String name
 
-    String template
+    String profile = "psql"
+
+    String templateName
 
     FileCollection omeXmlFiles
 

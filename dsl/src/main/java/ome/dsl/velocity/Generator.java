@@ -5,7 +5,6 @@ import ome.dsl.SemanticTypeProcessor;
 import ome.dsl.sax.MappingReader;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
@@ -38,7 +37,10 @@ public abstract class Generator implements Runnable {
      */
     protected File template;
 
-    protected VelocityEngine velocity = new VelocityEngine();
+    /**
+     * VelocityEngine instance to use for performing work
+     */
+    protected VelocityEngine velocity;
 
     protected Generator(Builder builder) {
         if (builder.profile == null || builder.profile.isEmpty()) {
@@ -56,7 +58,7 @@ public abstract class Generator implements Runnable {
         this.profile = builder.profile;
         this.omeXmlFiles = builder.omeXmlFiles;
         this.template = builder.template;
-        this.velocity.init(builder.properties);
+        this.velocity = builder.velocity;
     }
 
     List<SemanticType> loadSemanticTypes(Collection<File> files) {
@@ -110,7 +112,7 @@ public abstract class Generator implements Runnable {
     public static abstract class Builder {
         private String profile;
         private File template;
-        private Properties properties;
+        private VelocityEngine velocity;
         private Collection<File> omeXmlFiles;
 
         public Builder setProfile(String profile) {
@@ -128,8 +130,8 @@ public abstract class Generator implements Runnable {
             return this;
         }
 
-        public Builder setVelocityProperties(Properties p) {
-            this.properties = p;
+        public Builder setVelocityEngine(VelocityEngine velocity) {
+            this.velocity = velocity;
             return this;
         }
 

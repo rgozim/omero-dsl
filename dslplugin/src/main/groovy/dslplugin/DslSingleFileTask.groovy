@@ -10,7 +10,7 @@ class DslSingleFileTask extends DslTaskBase {
 
     @OutputFile
     @Optional
-    RegularFileProperty outFile = project.layout.fileProperty()
+    RegularFileProperty outFile = newOutputFile()
 
     void setOutFile(File outFile) {
         this.outFile.set(outFile)

@@ -11,7 +11,7 @@ import org.gradle.api.tasks.OutputDirectory
 class DslMultiFileTask extends DslTaskBase {
 
     @OutputDirectory
-    DirectoryProperty outputPath = project.layout.directoryProperty()
+    DirectoryProperty outputPath = newOutputDirectory()
 
     @Input
     Property<MultiFileGenerator.FileNameFormatter> formatOutput =
