@@ -4,16 +4,11 @@ import ome.dsl.SemanticType;
 import org.apache.velocity.VelocityContext;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 import java.util.Collection;
+import java.util.function.Function;
 
 public class MultiFileGenerator extends Generator {
-
-    /**
-     * Callback for formatting final filename
-     */
-    public interface FileNameFormatter {
-        String format(SemanticType t);
-    }
 
     /**
      * Folder to write velocity generated content
@@ -23,12 +18,20 @@ public class MultiFileGenerator extends Generator {
     /**
      * callback for formatting output file name
      */
-    private FileNameFormatter formatFileName;
+    private Function<SemanticType, String> fileNameFormatter;
 
     private MultiFileGenerator(Builder builder) {
         super(builder);
-        this.outputDir = builder.outputDir;
-        this.formatFileName = builder.formatFileName;
+        if (builder.outputDir == null) {
+            throw new InvalidParameterException("Where are files supposed to be written to?");
+        }
+
+        if (builder.fileNameFormatter == null) {
+            throw new InvalidParameterException("File name formatter is required");
+        }
+
+        outputDir = builder.outputDir;
+        fileNameFormatter = builder.fileNameFormatter;
     }
 
     public void run() {
@@ -44,22 +47,22 @@ public class MultiFileGenerator extends Generator {
             vc.put("type", st);
 
             // Format the final filename using callback
-            String filename = formatFileName.format(st);
+            String filename = fileNameFormatter.apply(st);
             parseTemplate(vc, template, new File(outputDir, filename));
         }
     }
 
     public static class Builder extends Generator.Builder {
         private File outputDir;
-        private FileNameFormatter formatFileName;
+        private Function<SemanticType, String> fileNameFormatter;
 
         public Builder setOutputDir(File outputDir) {
             this.outputDir = outputDir;
             return this;
         }
 
-        public Builder setFileFormatter(FileNameFormatter callback) {
-            this.formatFileName = callback;
+        public Builder setFileNameFormatter(Function<SemanticType, String> callback) {
+            this.fileNameFormatter = callback;
             return this;
         }
 

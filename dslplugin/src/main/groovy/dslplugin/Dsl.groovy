@@ -1,16 +1,17 @@
 package dslplugin
 
-import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 
 class Dsl {
-    final ConfigurableFileCollection mappingFiles
+    FileCollection mappingFiles
 
-    final DirectoryProperty templateDir
+    File templateDir
 
-    Dsl(Project project) {
-        mappingFiles = project.layout.configurableFiles()
-        templateDir = project.layout.directoryProperty()
+    void setTemplateDir(String templateDir) {
+        this.templateDir = new File(templateDir)
+    }
+
+    void setTemplateDir(File templateDir) {
+        this.templateDir = templateDir
     }
 }
