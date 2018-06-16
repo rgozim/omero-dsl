@@ -18,11 +18,13 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+import java.util.function.Function
+
 class DslTask extends DefaultTask {
 
     @Internal
     @Optional
-    Transformer<String, SemanticType> formatOutput
+    Function<SemanticType, String> formatOutput
 
     /**
      * Set this when you want to generate multiple files
@@ -55,6 +57,22 @@ class DslTask extends DefaultTask {
     @InputFiles
     FileCollection omeXmlFiles
 
+
+    def formatOutput(Closure formatter) {
+        formatOutput = new Function<SemanticType, String>() {
+            @Override
+            String apply(SemanticType semanticType) {
+                return formatter(semanticType)
+            }
+        }
+        // project.configure(formatOutput, formatter)
+    }
+
+    def setFormatOutput(Closure formatter) {
+        formatOutput(formatter)
+    }
+
+
     @TaskAction
     def apply() {
         // Determine which type of file generator to use
@@ -83,7 +101,7 @@ class DslTask extends DefaultTask {
     Generator.Builder createMultiFileGenerator() {
         return new MultiFileGenerator.Builder()
                 .setOutputDir(outputPath)
-                .setFileNameFormatter({ st -> formatOutput.transform(st) })
+                .setFileNameFormatter(formatOutput)
     }
 
     Generator.Builder createSingleFileGenerator() {

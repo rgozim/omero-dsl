@@ -2,7 +2,6 @@ package dslplugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
 
 class DslPlugin implements Plugin<Project> {
 
@@ -44,7 +43,11 @@ class DslPlugin implements Plugin<Project> {
 
     def configureDslTasks(Project project) {
         project.dsl.generate.all { DslOperation info ->
-            def taskName = "dsl${info.name.capitalize()}"
+            String taskName = "dsl${info.name.capitalize()}"
+            DslTask task = project.tasks.create(taskName, DslTask) {
+                group = "omero"
+                description = "parses ome.xml files and compiles velocity template"
+            }
 
             project.afterEvaluate {
                 // Combine template directory with template, if the
@@ -61,23 +64,19 @@ class DslPlugin implements Plugin<Project> {
                 }
 
                 // Assign property values to task inputs
-                def task = project.tasks.create(taskName, DslTask) {
-                    group = "omero"
-                    description = "parses ome.xml files and compiles velocity template"
-                    outputPath = info.outputPath
-                    formatOutput = info.formatOutput
-                    outFile = info.outFile
-                    profile = info.profile
-                    template = info.template
-                    omeXmlFiles = info.omeXmlFiles
-                    velocityProperties = project.dsl.velocity.props.get()
-                }
+                task.outputPath = info.outputPath
+                task.formatOutput = info.formatOutput
+                task.outFile = info.outFile
+                task.profile = info.profile
+                task.template = info.template
+                task.omeXmlFiles = info.omeXmlFiles
+                task.velocityProperties = project.dsl.velocity.props.get()
 
                 // Add dsl task to list of tasks
-                if (project.plugins.hasPlugin(JavaPlugin)) {
-                    // Ensure the DslTask runs before compileJava
-                    project.tasks.getByPath("compileJava").mustRunAfter(task)
-                }
+//                if (project.plugins.hasPlugin(JavaPlugin)) {
+//                    // Ensure the DslTask runs before compileJava
+//                    project.tasks.getByPath("compileJava").mustRunAfter(task)
+//                }
             }
         }
     }
