@@ -1,5 +1,3 @@
-package dslplugin
-
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
@@ -7,7 +5,6 @@ import ome.dsl.velocity.SingleFileGenerator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -18,13 +15,15 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import java.util.function.Function
-
 class DslTask extends DefaultTask {
+
+    @Input
+    @Optional
+    Properties velocityProperties
 
     @Internal
     @Optional
-    Function<SemanticType, String> formatOutput
+    MultiFileGenerator.FileNameFormatter formatOutput
 
     /**
      * Set this when you want to generate multiple files
@@ -51,27 +50,17 @@ class DslTask extends DefaultTask {
     @Input
     String profile
 
-    @Input
-    Properties velocityProperties
-
     @InputFiles
     FileCollection omeXmlFiles
 
-
-    def formatOutput(Closure formatter) {
-        formatOutput = new Function<SemanticType, String>() {
+    void setFormatOutput(Closure formatter) {
+        formatOutput = new MultiFileGenerator.FileNameFormatter() {
             @Override
-            String apply(SemanticType semanticType) {
-                return formatter(semanticType)
+            String format(SemanticType t) {
+                return formatter(t)
             }
         }
-        // project.configure(formatOutput, formatter)
     }
-
-    def setFormatOutput(Closure formatter) {
-        formatOutput(formatter)
-    }
-
 
     @TaskAction
     def apply() {
@@ -92,7 +81,7 @@ class DslTask extends DefaultTask {
         ve.init(velocityProperties)
 
         builder.velocityEngine = ve
-        builder.omeXmlFiles = omeXmlFiles.files
+        builder.omeXmlFiles = omeXmlFiles as Collection
         builder.template = template
         builder.profile = profile
         builder.build().run()

@@ -1,4 +1,4 @@
-package dslplugin
+
 
 import org.gradle.api.file.FileCollection
 
@@ -17,30 +17,29 @@ class DslOperation {
 
     Closure formatOutput
 
-    void template(String t) {
-        this.template = new File(t)
-    }
-
     void setTemplate(String t) {
-        template(t)
+        setTemplate(new File(t))
     }
 
-    void outFile(String file) {
-        this.outFile = new File(file)
+    void setTemplate(File t) {
+        this.template = t
     }
 
     void setOutFile(String file) {
-        outFile(file)
+        setOutFile(new File(file))
     }
 
-    void outputPath(String dir) {
-        this.outputPath = new File(dir)
+    void setOutFile(File file) {
+        this.outFile = file
     }
 
     void setOutputPath(String dir) {
-        outputPath(dir)
+        setOutputPath(new File(dir))
     }
 
+    void setOutputPath(File dir) {
+        this.outputPath = dir
+    }
 
     DslOperation(String name) {
         this.name = name

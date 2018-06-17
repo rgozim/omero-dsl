@@ -1,4 +1,4 @@
-package dslplugin
+
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -71,6 +71,17 @@ class DslPlugin implements Plugin<Project> {
                 task.template = info.template
                 task.omeXmlFiles = info.omeXmlFiles
                 task.velocityProperties = project.dsl.velocity.props.get()
+
+                // Add results to clean tasks
+                project.clean {
+                    if (info.outputPath) {
+                        delete info.outputPath
+                    }
+
+                    if (info.outFile) {
+                        delete info.outFile
+                    }
+                }
 
                 // Add dsl task to list of tasks
 //                if (project.plugins.hasPlugin(JavaPlugin)) {

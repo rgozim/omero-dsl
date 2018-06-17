@@ -6,9 +6,15 @@ import org.apache.velocity.VelocityContext;
 import java.io.File;
 import java.security.InvalidParameterException;
 import java.util.Collection;
-import java.util.function.Function;
 
 public class MultiFileGenerator extends Generator {
+
+    /**
+     * Callback for formatting final filename
+     */
+    public interface FileNameFormatter {
+        String format(SemanticType t);
+    }
 
     /**
      * Folder to write velocity generated content
@@ -18,7 +24,7 @@ public class MultiFileGenerator extends Generator {
     /**
      * callback for formatting output file name
      */
-    private Function<SemanticType, String> fileNameFormatter;
+    private FileNameFormatter fileNameFormatter;
 
     private MultiFileGenerator(Builder builder) {
         super(builder);
@@ -47,21 +53,21 @@ public class MultiFileGenerator extends Generator {
             vc.put("type", st);
 
             // Format the final filename using callback
-            String filename = fileNameFormatter.apply(st);
+            String filename = fileNameFormatter.format(st);
             parseTemplate(vc, template, new File(outputDir, filename));
         }
     }
 
     public static class Builder extends Generator.Builder {
         private File outputDir;
-        private Function<SemanticType, String> fileNameFormatter;
+        private FileNameFormatter fileNameFormatter;
 
         public Builder setOutputDir(File outputDir) {
             this.outputDir = outputDir;
             return this;
         }
 
-        public Builder setFileNameFormatter(Function<SemanticType, String> callback) {
+        public Builder setFileNameFormatter(FileNameFormatter callback) {
             this.fileNameFormatter = callback;
             return this;
         }

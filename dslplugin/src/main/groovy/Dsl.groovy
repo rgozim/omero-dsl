@@ -1,4 +1,4 @@
-package dslplugin
+
 
 import org.gradle.api.file.FileCollection
 
@@ -13,5 +13,13 @@ class Dsl {
 
     void setTemplateDir(File templateDir) {
         this.templateDir = templateDir
+    }
+
+    void setMappingFiles(FileCollection files) {
+        if (mappingFiles) {
+            mappingFiles = mappingFiles + files
+        } else {
+            mappingFiles = files
+        }
     }
 }

@@ -5,6 +5,9 @@ plugins {
     id 'java-gradle-plugin'
 }
 
+group 'org.openmicroscopy'
+version '1.0'
+
 repositories {
     jcenter()
 }
@@ -26,7 +29,7 @@ gradlePlugin {
     plugins {
         dslplugin {
             id = 'org.openmicroscopy.dslplugin'
-            implementationClass = 'dslplugin.DslPlugin'
+            implementationClass = 'DslPlugin'
         }
     }
 }
