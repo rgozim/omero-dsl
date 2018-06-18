@@ -70,7 +70,7 @@ class DslPlugin implements Plugin<Project> {
                 task.profile = info.profile
                 task.template = info.template
                 task.omeXmlFiles = info.omeXmlFiles
-                task.velocityProperties = project.dsl.velocity.props.get()
+                task.velocityProperties = project.dsl.velocity.data.get()
 
                 // Add results to clean tasks
                 project.clean {
