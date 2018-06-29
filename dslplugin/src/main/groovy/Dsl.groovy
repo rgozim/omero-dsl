@@ -1,5 +1,4 @@
-
-
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
 class Dsl {
@@ -7,12 +6,14 @@ class Dsl {
 
     File templateDir
 
+    private Project project
+
     void setTemplateDir(String templateDir) {
-        this.templateDir = new File(templateDir)
+        setTemplateDir(new File(templateDir))
     }
 
     void setTemplateDir(File templateDir) {
-        this.templateDir = templateDir
+        this.templateDir = project.file(templateDir)
     }
 
     void setMappingFiles(FileCollection files) {
@@ -21,5 +22,9 @@ class Dsl {
         } else {
             mappingFiles = files
         }
+    }
+
+    Dsl(Project project) {
+        this.project = project
     }
 }

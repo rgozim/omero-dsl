@@ -1,5 +1,3 @@
-
-
 import org.gradle.api.file.FileCollection
 
 class DslOperation {
@@ -39,6 +37,14 @@ class DslOperation {
 
     void setOutputPath(File dir) {
         this.outputPath = dir
+    }
+
+    void setOmeXmlFiles(FileCollection files) {
+        if (omeXmlFiles) {
+            omeXmlFiles = omeXmlFiles + files
+        } else {
+            omeXmlFiles = files
+        }
     }
 
     DslOperation(String name) {

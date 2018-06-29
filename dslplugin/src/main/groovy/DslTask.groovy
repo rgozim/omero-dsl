@@ -13,6 +13,8 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 class DslTask extends DefaultTask {
@@ -45,13 +47,15 @@ class DslTask extends DefaultTask {
      * our sources
      */
     @InputFile
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     File template
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    FileCollection omeXmlFiles
 
     @Input
     String profile
-
-    @InputFiles
-    FileCollection omeXmlFiles
 
     void setFormatOutput(Closure formatter) {
         formatOutput = new MultiFileGenerator.FileNameFormatter() {
@@ -60,6 +64,18 @@ class DslTask extends DefaultTask {
                 return formatter(t)
             }
         }
+    }
+
+    void setTemplate(File template) {
+        this.template = setAbsPath(template)
+    }
+
+    void setOutFile(File outFile) {
+        this.outFile = setAbsPath(outFile)
+    }
+
+    void setOutputPath(File path) {
+        this.outputPath = setAbsPath(path)
     }
 
     @TaskAction
@@ -87,14 +103,22 @@ class DslTask extends DefaultTask {
         builder.build().run()
     }
 
-    Generator.Builder createMultiFileGenerator() {
+    private Generator.Builder createMultiFileGenerator() {
         return new MultiFileGenerator.Builder()
                 .setOutputDir(outputPath)
                 .setFileNameFormatter(formatOutput)
     }
 
-    Generator.Builder createSingleFileGenerator() {
+    private Generator.Builder createSingleFileGenerator() {
         return new SingleFileGenerator.Builder()
                 .setOutFile(outFile)
+    }
+
+    private File setAbsPath(File file) {
+        if (!file.isAbsolute()) {
+            return project.file(file)
+        } else {
+            return file
+        }
     }
 }

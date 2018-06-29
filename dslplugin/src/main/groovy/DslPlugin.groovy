@@ -21,7 +21,7 @@ class DslPlugin implements Plugin<Project> {
      */
     def setupDsl(Project project) {
         // Create the dsl extension
-        Dsl dsl = project.extensions.create('dsl', Dsl)
+        Dsl dsl = project.extensions.create('dsl', Dsl, project)
 
         // Create velocity inner extension for dsl
         dsl.extensions.create('velocity', VelocityExtension, project)
