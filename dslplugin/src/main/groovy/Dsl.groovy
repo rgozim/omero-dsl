@@ -16,7 +16,7 @@ class Dsl {
         this.templateDir = project.file(templateDir)
     }
 
-    void setMappingFiles(FileCollection files) {
+    void mappingFiles(FileCollection files) {
         if (mappingFiles) {
             mappingFiles = mappingFiles + files
         } else {

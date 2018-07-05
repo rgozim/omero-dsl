@@ -39,7 +39,7 @@ class DslOperation {
         this.outputPath = dir
     }
 
-    void setOmeXmlFiles(FileCollection files) {
+    void omeXmlFiles(FileCollection files) {
         if (omeXmlFiles) {
             omeXmlFiles = omeXmlFiles + files
         } else {

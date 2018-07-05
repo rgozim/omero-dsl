@@ -32,8 +32,8 @@ class DslTest extends Specification {
 
         when:
         def dsl = new Dsl(project)
-        dsl.mappingFiles = project.fileTree(dir: folderA, include: '**/*.ome.xml')
-        dsl.mappingFiles = project.fileTree(dir: folderB, include: "**/*.ome.xml")
+        dsl.mappingFiles project.fileTree(dir: folderA, include: '*.ome.xml')
+        dsl.mappingFiles project.fileTree(dir: folderB, include: "*.ome.xml")
 
         then:
         dsl.mappingFiles.size() == 6

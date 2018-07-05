@@ -1,10 +1,13 @@
-
-
+import ome.dsl.velocity.MultiFileGenerator
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 
 class DslPlugin implements Plugin<Project> {
+
+    Dsl dslExt
+    VelocityExtension velocityExt
 
     @Override
     void apply(Project project) {
@@ -21,29 +24,23 @@ class DslPlugin implements Plugin<Project> {
      */
     def setupDsl(Project project) {
         // Create the dsl extension
-        Dsl dsl = project.extensions.create('dsl', Dsl, project)
+        dslExt = project.extensions.create('dsl', Dsl, project)
 
         // Create velocity inner extension for dsl
-        dsl.extensions.create('velocity', VelocityExtension, project)
+        velocityExt = dslExt.extensions.create('velocity', VelocityExtension, project)
 
         // Add NamedDomainObjectContainer for java configs
-        dsl.extensions.add("generate", project.container(DslOperation))
+        dslExt.extensions.add("generate", project.container(DslOperation))
     }
 
     def configureVelocityExtension(Project project) {
-        VelocityExtension ve = project.dsl.velocity
-
         // Set some defaults for velocity
-        ve.loggerClassName = project.getLogger().getClass().getName()
+        velocityExt.loggerClassName = project.getLogger().getClass().getName()
     }
 
     def configureDslTasks(Project project) {
-        project.dsl.generate.all { DslOperation info ->
-            String taskName = "dsl${info.name.capitalize()}"
-            DslTask task = project.tasks.create(taskName, DslTask) {
-                group = "omero"
-                description = "parses ome.xml files and compiles velocity template"
-            }
+        dslExt.generate.all { DslOperation info ->
+            DslTask task = createDslTask(project, info)
 
             project.afterEvaluate {
                 // Combine template directory with template, if the
@@ -60,24 +57,15 @@ class DslPlugin implements Plugin<Project> {
                 }
 
                 // Assign property values to task inputs
-                task.outputPath = info.outputPath
-                task.formatOutput = info.formatOutput
-                task.outFile = info.outFile
+                task.group = "omero"
+                task.description = "parses ome.xml files and compiles velocity template"
                 task.profile = info.profile
                 task.template = info.template
                 task.omeXmlFiles = info.omeXmlFiles
                 task.velocityProperties = project.dsl.velocity.data.get()
 
-                // Add results to clean tasks
-                project.clean {
-                    if (info.outputPath) {
-                        delete info.outputPath
-                    }
-
-                    if (info.outFile) {
-                        delete info.outFile
-                    }
-                }
+                // Add a clean task for cleanup
+                addCleanTask(project, task)
 
                 // Add dsl task to list of tasks
                 if (project.plugins.hasPlugin(JavaPlugin)) {
@@ -87,6 +75,39 @@ class DslPlugin implements Plugin<Project> {
                             .dependsOn(task)
                 }
             }
+        }
+    }
+
+    def addCleanTask(Project project, DslTask task) {
+        if (task instanceof DslMultiFileTask) {
+            def t = task as DslMultiFileTask
+            project.clean {
+                delete t.outputPath
+            }
+        } else if (task instanceof DslSingleFileTask) {
+            def t = task as DslSingleFileTask
+            project.clean {
+                delete t.outFile
+            }
+        }
+    }
+
+    DslTask createDslTask(Project project, DslOperation dslOp) {
+        def taskName = "dsl${dslOp.name.capitalize()}"
+
+        if (dslOp.outputPath) {
+            return project.tasks.create(taskName, DslMultiFileTask) {
+                it.outputPath = dslOp.outputPath
+                it.formatOutput = dslOp.formatOutput
+            }
+        } else if (dslOp.outputPath) {
+            return project.tasks.create(taskName, DslSingleFileTask) {
+                it.outFile = dslOp.outFile
+            }
+        } else {
+            throw new GradleException("If this is a multi file " +
+                    "generator, you need to set outputPath. " +
+                    "Otherwise set outFile")
         }
     }
 }
