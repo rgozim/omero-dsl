@@ -1,3 +1,4 @@
+import extensions.VelocityExtension
 import org.apache.velocity.runtime.RuntimeConstants
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader
 import org.gradle.api.Project
@@ -19,7 +20,7 @@ class VelocityExtensionTest extends Specification {
         project = ProjectBuilder.builder().build();
     }
 
-    def "can create VelocityExtension"() {
+    def "can create extensions.VelocityExtension"() {
         when:
         def extension = createDefault(project)
 
@@ -29,7 +30,7 @@ class VelocityExtensionTest extends Specification {
         extension.loggerClassName.get() == RUNTIME_LOG_NAME
     }
 
-    def "can convert VelocityExtension to Properties"() {
+    def "can convert extensions.VelocityExtension to Properties"() {
         when:
         def extension = createDefault(project)
         def properties = extension.toProperties()

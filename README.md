@@ -96,7 +96,7 @@ Additional configurations to the `dsl` extension add a new task
 
 | Type      | Description                                       |
 | --------- | ------------------------------------------------- |
-| DslTask   | Generates Java source from ome.xml and .vm files  |
+| tasks.DslBaseTask   | Generates Java source from ome.xml and .vm files  |
 
 If, like in the examples above, you create configurations `javaModels` and `sqlModels`, these tasks will run
 before `compileJava`.

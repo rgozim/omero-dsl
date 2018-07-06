@@ -1,3 +1,5 @@
+package tasks
+
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
@@ -6,12 +8,11 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-abstract class DslTask extends DefaultTask {
+abstract class DslBaseTask extends DefaultTask {
 
     @Input
     String profile
@@ -41,8 +42,16 @@ abstract class DslTask extends DefaultTask {
         setTemplate(file)
     }
 
+    void omeXmlFiles(FileCollection files) {
+        if (omeXmlFiles) {
+            omeXmlFiles = omeXmlFiles + files
+        } else {
+            omeXmlFiles = files
+        }
+    }
+
     protected File setAbsPath(File file) {
-        if (!file.is()) {
+        if (!file.isAbsolute()) {
             return project.file(file)
         } else {
             return file

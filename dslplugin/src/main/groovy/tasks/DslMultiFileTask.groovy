@@ -1,3 +1,5 @@
+package tasks
+
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
@@ -6,7 +8,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
-class DslMultiFileTask extends DslTask {
+class DslMultiFileTask extends DslBaseTask {
 
     @Internal
     MultiFileGenerator.FileNameFormatter formatOutput

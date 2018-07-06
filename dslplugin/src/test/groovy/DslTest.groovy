@@ -1,3 +1,4 @@
+import extensions.DslExtension
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -12,12 +13,14 @@ class DslTest extends Specification {
 
     }
 
-    def "Template resolves to absolute paths"() {
+    def "Templates support multiple dirs"() {
         given:
         def project = ProjectBuilder.builder().build()
+        def folderA = createFolderWithFiles("A")
+        def folderB = createFolderWithFiles("B")
 
         when:
-        def dsl = new Dsl(project)
+        def dsl = new DslExtension()
         dsl.templateDir = testProjectDir.getRoot().name
 
         then:
@@ -31,7 +34,7 @@ class DslTest extends Specification {
         def folderB = createFolderWithFiles("B")
 
         when:
-        def dsl = new Dsl(project)
+        def dsl = new DslExtension()
         dsl.mappingFiles project.fileTree(dir: folderA, include: '*.ome.xml')
         dsl.mappingFiles project.fileTree(dir: folderB, include: "*.ome.xml")
 

@@ -1,4 +1,4 @@
-
+package extensions
 
 import org.apache.velocity.runtime.RuntimeConstants
 import org.gradle.api.Project

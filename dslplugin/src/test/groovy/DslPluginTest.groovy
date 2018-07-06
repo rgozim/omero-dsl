@@ -17,7 +17,7 @@ class DslPluginTest extends Specification {
     def "Dsl tasks generates single file"() {
         given:
         buildFile << """
-            task processIce (type: DslSingleFileTask) {
+            task processIce (type: tasks.DslSingleFileTask) {
                 template = "cfg.vm"
                 outFile = project.file('src/generated/resources/hibernate.cfg.xml')
                 omeXmlFiles = project.fileTree(dir: "src/main/resources/mappings", include: '**/*.ome.xml')
