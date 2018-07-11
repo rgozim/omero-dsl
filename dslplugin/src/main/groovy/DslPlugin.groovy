@@ -12,6 +12,9 @@ import tasks.DslSingleFileTask
 
 class DslPlugin implements Plugin<Project> {
 
+    static final String GROUP = "omero-dsl"
+    static final String TASK_PREFIX = "generate"
+
     DslExtension dslExt
     VelocityExtension velocityExt
 
@@ -49,9 +52,9 @@ class DslPlugin implements Plugin<Project> {
     def configureCodeTasks(Project project) {
         project.afterEvaluate {
             dslExt.code.all { CodeExtension op ->
-                def taskName = "dsl${op.name.capitalize()}"
+                def taskName = TASK_PREFIX + op.name.capitalize()
                 def task = project.tasks.create(taskName, DslMultiFileTask) {
-                    group = "omero"
+                    group = GROUP
                     description = "parses ome.xml files and compiles velocity template"
                     formatOutput = op.formatOutput
                     outputPath = getOutput(op)
@@ -69,9 +72,9 @@ class DslPlugin implements Plugin<Project> {
     def configureResourceTasks(Project project) {
         project.afterEvaluate {
             dslExt.resource.all { ResourceExtension op ->
-                def taskName = "dsl${op.name.capitalize()}"
+                def taskName = TASK_PREFIX + op.name.capitalize()
                 def task = project.tasks.create(taskName, DslSingleFileTask) {
-                    group = "omero"
+                    group = GROUP
                     description = "parses ome.xml files and compiles velocity template"
                     outFile = getOutput(op)
                     template = getTemplate(op)
@@ -95,12 +98,22 @@ class DslPlugin implements Plugin<Project> {
         }
     }
 
-    def getOutput(CodeExtension dsl) {
-        return new File(dslExt.outputPath, dsl.outputPath.path)
+    def getOutput(CodeExtension codeExt) {
+        File file = codeExt.outputPath
+        if (!file.isAbsolute()) {
+            file = new File(dslExt.outputPath, file.path)
+        }
+        println "OuputPath for ${codeExt.name}: " + file.toString()
+        return file
     }
 
-    def getOutput(ResourceExtension dsl) {
-        return new File(dslExt.outputPath, dsl.outputFile.path)
+    def getOutput(ResourceExtension resExt) {
+        File file = resExt.outputFile
+        if (!file.isAbsolute()) {
+            file = new File(dslExt.outputPath, file.path)
+        }
+        println "OutputDir for ${resExt.name}: " + file.toString()
+        return file
     }
 
     def getOmeXmlFiles(OperationExtension dsl) {
