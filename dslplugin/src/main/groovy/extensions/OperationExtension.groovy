@@ -18,19 +18,15 @@ class OperationExtension {
     }
 
     void setTemplate(String t) {
-        setTemplate(new File(t))
+        template = new File(t)
     }
 
     void template(String t) {
         setTemplate(t)
     }
 
-    void setTemplate(File t) {
-        this.template = t
-    }
-
-    void template(File t) {
-        setTemplate(t)
+    void template(File template) {
+        this.template = template
     }
 
     void omeXmlFiles(FileCollection files) {

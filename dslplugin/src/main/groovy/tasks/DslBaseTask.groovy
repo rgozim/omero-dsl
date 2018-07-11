@@ -33,7 +33,6 @@ abstract class DslBaseTask extends DefaultTask {
     @PathSensitive(PathSensitivity.ABSOLUTE)
     File template
 
-
     void setTemplate(File file) {
         this.template = setAbsPath(file)
     }
@@ -42,7 +41,7 @@ abstract class DslBaseTask extends DefaultTask {
         setTemplate(file)
     }
 
-    void omeXmlFiles(FileCollection files) {
+    void setOmeXmlFiles(FileCollection files) {
         if (omeXmlFiles) {
             omeXmlFiles = omeXmlFiles + files
         } else {
@@ -50,12 +49,8 @@ abstract class DslBaseTask extends DefaultTask {
         }
     }
 
-    protected File setAbsPath(File file) {
-        if (!file.isAbsolute()) {
-            return project.file(file)
-        } else {
-            return file
-        }
+    void omeXmlFiles(FileCollection files) {
+        setOmeXmlFiles(files)
     }
 
     @TaskAction
@@ -71,6 +66,14 @@ abstract class DslBaseTask extends DefaultTask {
         builder.template = template
         builder.profile = profile
         builder.build().run()
+    }
+
+    protected File setAbsPath(File file) {
+        if (!file.isAbsolute()) {
+            return project.file(file)
+        } else {
+            return file
+        }
     }
 
     abstract protected Generator.Builder createGenerator()

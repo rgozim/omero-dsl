@@ -19,6 +19,10 @@ class DslSingleFileTask extends DslBaseTask {
         this.outFile = setAbsPath(outFile)
     }
 
+    void outFile(File outFile) {
+        setOutFile(outFile)
+    }
+
     @Override
     protected Generator.Builder createGenerator() {
         return new SingleFileGenerator.Builder()

@@ -18,6 +18,10 @@ class CodeExtension extends OperationExtension {
         setOutputPath(dir)
     }
 
+    void outputPath(File dir) {
+        this.outputPath = dir
+    }
+
     void formatOutput(Closure closure) {
         this.formatOutput = closure
     }

@@ -44,6 +44,10 @@ class DslExtension {
         setOutputPath(path)
     }
 
+    void outputPath(File path) {
+        setOutputPath(path)
+    }
+
     DslExtension(Project project) {
         this.project = project
     }

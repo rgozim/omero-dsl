@@ -15,4 +15,8 @@ class ResourceExtension extends OperationExtension {
     void outputFile(String file) {
         setOutputFile(file)
     }
+
+    void outputFile(File file) {
+        outputFile = file
+    }
 }
