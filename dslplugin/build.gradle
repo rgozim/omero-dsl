@@ -5,9 +5,6 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-group 'org.openmicroscopy'
-version '1.0'
-
 repositories {
     jcenter()
 }
