@@ -6,6 +6,7 @@ import extensions.VelocityExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.Delete
 import tasks.DslBaseTask
 import tasks.DslMultiFileTask
 import tasks.DslSingleFileTask
@@ -52,8 +53,8 @@ class DslPlugin implements Plugin<Project> {
     def configureCodeTasks(Project project) {
         project.afterEvaluate {
             dslExt.code.all { CodeExtension op ->
-                def taskName = TASK_PREFIX + op.name.capitalize()
-                def task = project.tasks.create(taskName, DslMultiFileTask) {
+                String taskName = TASK_PREFIX + op.name.capitalize()
+                DslMultiFileTask task = project.tasks.create(taskName, DslMultiFileTask) {
                     group = GROUP
                     description = "parses ome.xml files and compiles velocity template"
                     formatOutput = op.formatOutput
@@ -63,7 +64,7 @@ class DslPlugin implements Plugin<Project> {
                     profile = op.profile
                     velocityProperties = velocityExt.data.get()
                 }
-                addCleanTask(project, task)
+                addCleanTask(project, taskName, task.outputPath)
                 addAfterCompileJava(project, task)
             }
         }
@@ -72,8 +73,8 @@ class DslPlugin implements Plugin<Project> {
     def configureResourceTasks(Project project) {
         project.afterEvaluate {
             dslExt.resource.all { ResourceExtension op ->
-                def taskName = TASK_PREFIX + op.name.capitalize()
-                def task = project.tasks.create(taskName, DslSingleFileTask) {
+                String taskName = TASK_PREFIX + op.name.capitalize()
+                DslSingleFileTask task = project.tasks.create(taskName, DslSingleFileTask) {
                     group = GROUP
                     description = "parses ome.xml files and compiles velocity template"
                     outFile = getOutput(op)
@@ -82,7 +83,7 @@ class DslPlugin implements Plugin<Project> {
                     profile = op.profile
                     velocityProperties = velocityExt.data.get()
                 }
-                addCleanTask(project, task)
+                addCleanTask(project, taskName, task.outFile)
                 addAfterCompileJava(project, task)
             }
         }
@@ -127,18 +128,12 @@ class DslPlugin implements Plugin<Project> {
         return dsl.omeXmlFiles
     }
 
-    def addCleanTask(Project project, DslBaseTask task) {
-        if (task instanceof DslMultiFileTask) {
-            def t = task as DslMultiFileTask
-            project.clean {
-                delete t.outputPath
-            }
-        } else if (task instanceof DslSingleFileTask) {
-            def t = task as DslSingleFileTask
-            project.clean {
-                delete t.outFile
-            }
+    def addCleanTask(Project project, String taskName, File toDelete) {
+        String cleanTaskName = "clean${taskName.capitalize()}"
+        def cleanTask = project.tasks.create(cleanTaskName, Delete) {
+            it.delete toDelete
         }
+        cleanTask.shouldRunAfter project.tasks.getByName('clean')
     }
 
     def addAfterCompileJava(Project project, DslBaseTask task) {

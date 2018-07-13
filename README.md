@@ -122,6 +122,34 @@ dsl {
 }
 ```
 
+### `dsl` Properties
+
+| Property name | type           | Default value | Description                                                          |
+|---------------|----------------|---------------|----------------------------------------------------------------------|
+| mappingFiles  | FileCollection |       -       | .ome.xml mapping files in project. Supports more than one assignment |
+| templateFiles | templateFiles  |       -       | Velocity .vm files in project. Supports more than one assignment     |
+| outputPath    | File           |       -       | Base output directory to place generated files                       |
+
+
+### `code` Properties
+
+| Property name | type           | Default value | Description                                                                      |
+|---------------|----------------|---------------|----------------------------------------------------------------------------------|
+| outputPath    | File           |       -       | Output directory to generate files in                                            |
+| formatOutput  | Closure        |       -       | Closure that receives a `SemanticType` object for tweaking generated files names |
+| profile       | String         |      psql     | Database engine syntax to use                                                    |
+| template      | File           |       -       | Velocity template file                                                           |
+| omeXmlFiles   | FileCollection |       -       | Collection of ome.xml files, combines with `dsl.mappingFiles` if set             |
+
+### `resource` Properties
+
+
+| Property name | type           | Default value | Description                                                          |
+|---------------|----------------|---------------|----------------------------------------------------------------------|
+| outputFile    | File           |       -       | File to generate                                                     |
+| profile       | String         |      psql     | Database engine syntax to use                                        |
+| template      | File           |       -       | Velocity template file                                               |
+| omeXmlFiles   | FileCollection |       -       | Collection of ome.xml files, combines with `dsl.mappingFiles` if set |
 
 ### Gradle Task
 
