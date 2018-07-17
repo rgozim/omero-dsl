@@ -43,7 +43,7 @@ omero-dsl supports two kinds of code generation, source code (multiple files) an
 
 To generate resource (single) files or source code (multiple files), start by adding a `resource { }` or `code { }` 
 block to `dsl {}`. Inside the `resource` or `code` block you can add **one** or **more** inner 
-blocks. Inner blocks that you add can be named anything you want and will result in gradle tasks being created with 
+blocks. Inner blocks that you add can be named anything you want and will result in gradle org.openmicroscopy.dsl.tasks being created with 
 the prefix `generate[YOUR BLOCK NAME HERE]`.
 
 Code Example:
@@ -64,7 +64,7 @@ dsl {
 ```
 
 This will add a task `generatejava` under the group `omero-dsl` in gradle _(to print a list of available gradle
-tasks run `./gradlew tasks` in a terminal)_.
+org.openmicroscopy.dsl.tasks run `./gradlew org.openmicroscopy.dsl.tasks` in a terminal)_.
 
 Resource Example:
 
@@ -81,7 +81,7 @@ dsl {
 ```
 
 This will add a task `generateHibernate` under the group `omero-dsl` in gradle _(to print a list of available gradle
-tasks run `./gradlew tasks` in a terminal)_. 
+org.openmicroscopy.dsl.tasks run `./gradlew org.openmicroscopy.dsl.tasks` in a terminal)_. 
 
 _If you are using Intellij, refresh the _Gradle Toolbar_ and the task will appear in the list once the IDE completes 
 its work._
@@ -165,9 +165,9 @@ Additional configurations to the `dsl` extension add a new task
 
 | Type      | Description                                       |
 | --------- | ------------------------------------------------- |
-| tasks.DslBaseTask   | Generates Java source from ome.xml and .vm files  |
+| org.openmicroscopy.dsl.DslBaseTasky.dsl.tasks.DslBaseTask   | Generates Java source from ome.xml and .vm files  |
 
-If, like in the examples above, you create configurations `javaModels` and `sqlModels`, these tasks will run
+If, like in the examples above, you create configurations `javaModels` and `sqlModels`, these org.openmicroscopy.dsl.tasks will run
 before `compileJava`.
 
 | Task name   | Depends On        |

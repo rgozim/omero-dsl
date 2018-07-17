@@ -1,4 +1,4 @@
-package extensions
+package org.openmicroscopy.dsl.extensions
 
 import org.apache.velocity.runtime.RuntimeConstants
 import org.gradle.api.Project

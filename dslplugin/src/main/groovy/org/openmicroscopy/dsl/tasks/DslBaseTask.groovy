@@ -1,4 +1,4 @@
-package tasks
+package org.openmicroscopy.dsl.tasks
 
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
@@ -58,8 +58,12 @@ abstract class DslBaseTask extends DefaultTask {
         // Determine which type of file generator to use
         // Create and init velocity engine
         VelocityEngine ve = new VelocityEngine()
-        ve.init(velocityProperties)
-
+        if (velocityProperties) {
+            ve.init(velocityProperties)
+        } else {
+            ve.init()
+        }
+        
         def builder = createGenerator()
         builder.velocityEngine = ve
         builder.omeXmlFiles = omeXmlFiles as Collection

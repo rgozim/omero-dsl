@@ -1,4 +1,4 @@
-import extensions.DslExtension
+import org.openmicroscopy.dsl.extensions.DslExtension
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule

@@ -1,4 +1,4 @@
-package tasks
+package org.openmicroscopy.dsl.tasks
 
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator

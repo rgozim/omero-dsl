@@ -1,4 +1,4 @@
-package tasks
+package org.openmicroscopy.dsl.tasks
 
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.SingleFileGenerator

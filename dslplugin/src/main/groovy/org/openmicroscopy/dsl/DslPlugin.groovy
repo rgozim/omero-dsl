@@ -1,15 +1,18 @@
-import extensions.CodeExtension
-import extensions.DslExtension
-import extensions.OperationExtension
-import extensions.ResourceExtension
-import extensions.VelocityExtension
+package org.openmicroscopy.dsl
+
+import org.openmicroscopy.dsl.extensions.CodeExtension
+import org.openmicroscopy.dsl.extensions.DslExtension
+import org.openmicroscopy.dsl.extensions.OperationExtension
+import org.openmicroscopy.dsl.extensions.ResourceExtension
+import org.openmicroscopy.dsl.extensions.VelocityExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Delete
-import tasks.DslBaseTask
-import tasks.DslMultiFileTask
-import tasks.DslSingleFileTask
+import org.openmicroscopy.dsl.tasks.DslBaseTask
+import org.openmicroscopy.dsl.tasks.DslMultiFileTask
+import org.openmicroscopy.dsl.tasks.DslSingleFileTask
 
 class DslPlugin implements Plugin<Project> {
 
@@ -21,9 +24,17 @@ class DslPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        setupDsl(project)
+        init(project)
+    }
 
-        // Default configure dsl tasks
+    void init(Project project) {
+        this.init(project, project.extensions)
+    }
+
+    void init(Project project, ExtensionContainer baseExt) {
+        setupDsl(project, baseExt)
+
+        // Default configure dsl org.openmicroscopy.dsl.tasks
         configureVelocityExtension(project)
         configureCodeTasks(project)
         configureResourceTasks(project)
@@ -33,9 +44,9 @@ class DslPlugin implements Plugin<Project> {
      * Sets up the plugin language block
      * @param project
      */
-    def setupDsl(Project project) {
+    def setupDsl(Project project, ExtensionContainer extensions) {
         // Create the dsl extension
-        dslExt = project.extensions.create('dsl', DslExtension, project)
+        dslExt = extensions.create('dsl', DslExtension, project)
 
         // Add NamedDomainObjectContainer for code and resource generators
         dslExt.extensions.add("code", project.container(CodeExtension))
@@ -137,9 +148,9 @@ class DslPlugin implements Plugin<Project> {
     }
 
     def addAfterCompileJava(Project project, DslBaseTask task) {
-        // Add dsl task to list of tasks
+        // Add dsl task to list of org.openmicroscopy.dsl.tasks
         if (project.plugins.hasPlugin(JavaPlugin)) {
-            // Ensure the tasks.DslBaseTask runs before compileJava
+            // Ensure the org.openmicroscopy.dsl.DslBaseTasky.dsl.tasks.DslBaseTask runs before compileJava
             project.tasks.getByName("compileJava")
                     .dependsOn(task)
         }

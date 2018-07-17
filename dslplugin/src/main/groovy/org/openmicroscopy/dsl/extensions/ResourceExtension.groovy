@@ -1,4 +1,4 @@
-package extensions
+package org.openmicroscopy.dsl.extensions
 
 class ResourceExtension extends OperationExtension {
 
