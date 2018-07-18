@@ -24,7 +24,7 @@ sourceSets {
 gradlePlugin {
     plugins {
         dslplugin {
-            id = 'org.openmicroscopy.dslplugin'
+            id = 'org.openmicroscopy.dsl'
             implementationClass = 'org.openmicroscopy.dsl.DslPlugin'
         }
     }

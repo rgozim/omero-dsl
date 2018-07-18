@@ -1,4 +1,4 @@
-rootProject.name = 'omero-dsl'
+rootProject.name = 'omero-dsl-plugin'
 include 'dsl'
 include 'dslplugin'
 
