@@ -1,50 +1,62 @@
 package org.openmicroscopy.dsl
 
 import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.util.GradleVersion
 
 class DslPlugin implements Plugin<Project> {
 
-    static final String OME_XML_FOLDER = "mappings"
+    static final def OME_XML_FOLDER = "mappings"
+    static final def OME_XML_FILES = [
+            "acquisition.ome.xml",
+            "annotations.ome.xml",
+            "containers.ome.xml",
+            "display.ome.xml",
+            "fs.ome.xml",
+            "jobs.ome.xml",
+            "meta.ome.xml",
+            "roi.ome.xml",
+            "screen.ome.xml"
+    ]
 
     @Override
     void apply(Project project) {
         // Apply the base plugin
         def plugin = project.plugins.apply(DslPluginBase)
 
-        // Add our plugin opinions
-        // 1) load local ome.xml files for mapping files (default)
-        // plugin.dslExt.mappingFiles = project.files(loadOmeXmlFiles(project))
+        // Set default .ome.xml mapping files
+        plugin.dslExt.mappingFiles = project.files(loadOmeXmlFiles(project))
+    }
 
-        project.tasks.create("loadOmeXmlFiles") {
-            println getResourceFolderFiles("mappings")
+    def loadOmeXmlFiles(Project project) {
+        if (GradleVersion.current() >= GradleVersion.version('4.8')) {
+            return OME_XML_FILES.collect {
+                def uri = IOUtils.getResource("${OME_XML_FOLDER}/${it}")
+                        .toURI()
+                project.resources.text.fromUri(uri)
+                        .asFile()
+            }
+        } else {
+            return OME_XML_FILES.collect {
+                loadFileOrExtract(project, "${OME_XML_FOLDER}/${it}")
+            }
         }
     }
 
+    def loadFileOrExtract(Project project, String resourceFile) {
+        final def fileLocation = resourceFile
+        final def outPutDir = "${project.buildDir}/${resourceFile}"
 
-    def loadOmeXmlFiles(Project project) {
-        def xmlFiles = getResourceFolderFiles(OME_XML_FOLDER)
-        return xmlFiles.collect { loadResFile(project, it) }
-    }
-
-    def loadResFile(Project project, File file) {
-        println file
-        final def projectFile = "${project.buildDir}/${file.path}"
-        def result = new File(projectFile)
+        // Check if combined file exists
+        def result = new File(outPutDir)
         if (!result.exists()) {
             def classLoader = getClass().getClassLoader()
-            def inputStream = classLoader.getResourceAsStream(file.name)
+            def inputStream = classLoader.getResourceAsStream(fileLocation)
             // Copy it to the projects build directory
             FileUtils.copyInputStreamToFile(inputStream, result)
         }
         return result
-    }
-
-    def getResourceFolderFiles(String folder) {
-        ClassLoader loader = getClass().getClassLoader()
-        URL url = loader.getResource(folder)
-        String path = url.getPath()
-        return new File(path).listFiles()
     }
 }
