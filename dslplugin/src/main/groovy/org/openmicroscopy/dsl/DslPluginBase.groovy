@@ -129,14 +129,11 @@ class DslPluginBase implements Plugin<Project> {
     }
 
     def getOmeXmlFiles(OperationExtension dsl) {
-        if (dslExt.mappingFiles) {
-            if (dsl.omeXmlFiles) {
-                return dslExt.mappingFiles + dsl.omeXmlFiles
-            } else {
-                return dslExt.mappingFiles
-            }
+        if (dsl.omeXmlFiles) {
+            return dsl.omeXmlFiles
+        } else {
+            return dslExt.omeXmlFiles
         }
-        return dsl.omeXmlFiles
     }
 
     def addCleanTask(Project project, String taskName, File toDelete) {

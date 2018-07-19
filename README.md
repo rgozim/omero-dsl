@@ -43,7 +43,7 @@ omero-dsl supports two kinds of code generation, source code (multiple files) an
 
 To generate resource (single) files or source code (multiple files), start by adding a `resource { }` or `code { }` 
 block to `dsl {}`. Inside the `resource` or `code` block you can add **one** or **more** inner 
-blocks. Inner blocks that you add can be named anything you want and will result in gradle org.openmicroscopy.dsl.tasks being created with 
+blocks. Inner blocks that you add can be named anything you want and will result in gradle tasks being created with 
 the prefix `generate[YOUR BLOCK NAME HERE]`.
 
 Code Example:
@@ -64,7 +64,7 @@ dsl {
 ```
 
 This will add a task `generatejava` under the group `omero-dsl` in gradle _(to print a list of available gradle
-org.openmicroscopy.dsl.tasks run `./gradlew org.openmicroscopy.dsl.tasks` in a terminal)_.
+tasks run `./gradlew tasks` in a terminal)_.
 
 Resource Example:
 
@@ -81,7 +81,7 @@ dsl {
 ```
 
 This will add a task `generateHibernate` under the group `omero-dsl` in gradle _(to print a list of available gradle
-org.openmicroscopy.dsl.tasks run `./gradlew org.openmicroscopy.dsl.tasks` in a terminal)_. 
+tasks run `./gradlew tasks` in a terminal)_. 
 
 _If you are using Intellij, refresh the _Gradle Toolbar_ and the task will appear in the list once the IDE completes 
 its work._
@@ -91,10 +91,11 @@ For example:
 
 ```groovy
 dsl {
-    // Optional
+    // -- Optional ---
     templateFiles fileTree(dir: "src/main/resources/templates", include: '**/*.vm')
     mappingFiles fileTree(dir: "src/main/resources/mappings", include: '**/*.ome.xml')
     outputPath "src/generated"
+    // ---------------
 
     code {
         java {
@@ -132,12 +133,11 @@ dsl {
 
 ### `dsl` Properties
 
-| Property name | type           | Default value | Description                                                          |
-|---------------|----------------|---------------|----------------------------------------------------------------------|
-| mappingFiles  | FileCollection |       -       | __.ome.xml__ mapping files in project. Supports more than one assignment |
-| templateFiles | templateFiles  |       -       | Velocity __.vm__ files in project. Supports more than one assignment     |
-| outputPath    | File           |       -       | Base output directory to place generated files                       |
-
+| Property      | Type           | Default              | Description                                    |
+|---------------|----------------|----------------------|------------------------------------------------|
+| omeXmlFiles   | FileCollection | jar'd .ome.xml files | `.ome.xml` mapping files in project            |
+| templateFiles | FileCollection |           -          | Velocity `.vm` files in project                |
+| outputPath    | File           |           -          | Base output directory to place generated files |
 
 ### `code` Properties
 
@@ -146,18 +146,17 @@ dsl {
 | outputPath    | File           |       -       | Output directory to generate files in                                            |
 | formatOutput  | Closure        |       -       | Closure that receives a `SemanticType` object for tweaking generated files names |
 | profile       | String         |      psql     | Database engine syntax to use                                                    |
-| template      | File           |       -       | Velocity template file                                                           |
-| omeXmlFiles   | FileCollection |       -       | Collection of ome.xml files, combines with `dsl.mappingFiles` if set             |
+| template      | File           |       -       | Velocity file, can be absolute or filename to search through `dsl.templateFiles` |
+| omeXmlFiles   | FileCollection |       -       | Collection of `.ome.xml` files, overrides `dsl.mappingFiles` if set              |
 
 ### `resource` Properties
 
-
-| Property name | type           | Default value | Description                                                          |
-|---------------|----------------|---------------|----------------------------------------------------------------------|
-| outputFile    | File           |       -       | File to generate                                                     |
-| profile       | String         |      psql     | Database engine syntax to use                                        |
-| template      | File           |       -       | Velocity template file                                               |
-| omeXmlFiles   | FileCollection |       -       | Collection of ome.xml files, combines with `dsl.mappingFiles` if set |
+| Property name | type           | Default value | Description                                                                      |
+|---------------|----------------|---------------|----------------------------------------------------------------------------------|
+| outputFile    | File           |       -       | File to generate                                                                 |
+| profile       | String         |      psql     | Database engine syntax to use                                                    |
+| template      | File           |       -       | Velocity file, can be absolute or filename to search through `dsl.templateFiles` |
+| omeXmlFiles   | FileCollection |       -       | Collection of `.ome.xml` files, overrides `dsl.mappingFiles` if set              |
 
 ### Gradle Task
 
@@ -165,9 +164,9 @@ Additional configurations to the `dsl` extension add a new task
 
 | Type      | Description                                       |
 | --------- | ------------------------------------------------- |
-| org.openmicroscopy.dsl.DslBaseTasky.dsl.tasks.DslBaseTask   | Generates Java source from ome.xml and .vm files  |
+| tasks.DslBaseTask   | Generates Java source from ome.xml and .vm files  |
 
-If, like in the examples above, you create configurations `javaModels` and `sqlModels`, these org.openmicroscopy.dsl.tasks will run
+If, like in the examples above, you create configurations `javaModels` and `sqlModels`, these tasks will run
 before `compileJava`.
 
 | Task name   | Depends On        |

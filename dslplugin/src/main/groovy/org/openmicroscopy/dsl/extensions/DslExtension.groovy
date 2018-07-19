@@ -6,7 +6,7 @@ import org.gradle.api.file.FileCollection
 class DslExtension {
     final Project project
 
-    FileCollection mappingFiles
+    FileCollection omeXmlFiles
 
     FileCollection templateFiles
 
@@ -20,11 +20,11 @@ class DslExtension {
         }
     }
 
-    void mappingFiles(FileCollection files) {
-        if (mappingFiles) {
-            mappingFiles = mappingFiles + files
+    void omeXmlFiles(FileCollection files) {
+        if (omeXmlFiles) {
+            omeXmlFiles = omeXmlFiles + files
         } else {
-            mappingFiles = files
+            omeXmlFiles = files
         }
     }
 

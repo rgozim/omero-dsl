@@ -1,8 +1,8 @@
-import org.openmicroscopy.dsl.extensions.DslExtension
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.openmicroscopy.dsl.extensions.DslExtension
 import spock.lang.Specification
 
 class DslExtensionTest extends Specification {
@@ -45,11 +45,11 @@ class DslExtensionTest extends Specification {
 
         when:
         def dsl = new DslExtension()
-        dsl.mappingFiles project.fileTree(dir: folderA, include: '*.file')
-        dsl.mappingFiles project.fileTree(dir: folderB, include: '*.file')
+        dsl.omeXmlFiles project.fileTree(dir: folderA, include: '*.file')
+        dsl.omeXmlFiles project.fileTree(dir: folderB, include: '*.file')
 
         then:
-        dsl.mappingFiles.size() == 6
+        dsl.omeXmlFiles.size() == 6
     }
 
     // Create fake ome.xml files
