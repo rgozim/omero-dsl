@@ -1,11 +1,13 @@
 package org.openmicroscopy.dsl.extensions
 
+import org.gradle.api.Project
+
 class ResourceExtension extends OperationExtension {
 
     File outputFile
 
-    ResourceExtension(String name) {
-        super(name)
+    ResourceExtension(String name, Project project) {
+        super(name, project)
     }
 
     void setOutputFile(String file) {

@@ -1,13 +1,15 @@
 package org.openmicroscopy.dsl.extensions
 
+import org.gradle.api.Project
+
 class CodeExtension extends OperationExtension {
 
     File outputPath
 
     Closure formatOutput
 
-    CodeExtension(String name) {
-        super(name)
+    CodeExtension(String name, Project project) {
+        super(name, project)
     }
 
     void setOutputPath(String dir) {

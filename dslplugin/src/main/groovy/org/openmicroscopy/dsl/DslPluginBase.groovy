@@ -49,8 +49,12 @@ class DslPluginBase implements Plugin<Project> {
         dslExt = extensions.create('dsl', DslExtension, project)
 
         // Add NamedDomainObjectContainer for code and resource generators
-        dslExt.extensions.add("code", project.container(CodeExtension))
-        dslExt.extensions.add("resource", project.container(ResourceExtension))
+        dslExt.extensions.add("code", project.container(CodeExtension, {
+            new CodeExtension(it, project)
+        }))
+        dslExt.extensions.add("resource", project.container(ResourceExtension, {
+            new ResourceExtension(it, project)
+        }))
 
         // Create velocity inner extension for dsl
         velocityExt = dslExt.extensions.create('velocity', VelocityExtension, project)
