@@ -13,6 +13,6 @@ class DslPlugin implements Plugin<Project> {
         def plugin = project.plugins.apply(DslPluginBase)
 
         // Set default .ome.xml mapping files
-        plugin.dslExt.omeXmlFiles = project.files(OmeXmlLoader.loadOmeXmlFiles())
+        plugin.dslExt.omeXmlFiles = OmeXmlLoader.loadOmeXmlFiles(project)
     }
 }

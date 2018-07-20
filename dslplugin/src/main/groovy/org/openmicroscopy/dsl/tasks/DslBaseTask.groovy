@@ -49,9 +49,18 @@ abstract class DslBaseTask extends DefaultTask {
         }
     }
 
+    void setOmeXmlFiles(List<File> files) {
+        setOmeXmlFiles(project.files(files))
+    }
+
     void omeXmlFiles(FileCollection files) {
         setOmeXmlFiles(files)
     }
+
+    void omeXmlFiles(List<File> files) {
+        setOmeXmlFiles(files)
+    }
+
 
     @TaskAction
     void apply() {
@@ -63,7 +72,7 @@ abstract class DslBaseTask extends DefaultTask {
         } else {
             ve.init()
         }
-        
+
         def builder = createGenerator()
         builder.velocityEngine = ve
         builder.omeXmlFiles = omeXmlFiles as Collection

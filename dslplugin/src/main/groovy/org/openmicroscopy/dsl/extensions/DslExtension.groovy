@@ -28,6 +28,14 @@ class DslExtension {
         }
     }
 
+    void omeXmlFiles(List<File> files) {
+        this.setOmeXmlFiles(files)
+    }
+
+    void setOmeXmlFiles(List<File> files) {
+        this.omeXmlFiles project.files(files)
+    }
+
     void setOutputPath(String path) {
         setOutputPath(new File(path))
     }
