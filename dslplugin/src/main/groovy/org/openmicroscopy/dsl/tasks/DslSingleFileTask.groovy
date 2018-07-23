@@ -3,8 +3,6 @@ package org.openmicroscopy.dsl.tasks
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.SingleFileGenerator
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 
 class DslSingleFileTask extends DslBaseTask {
 
@@ -12,7 +10,6 @@ class DslSingleFileTask extends DslBaseTask {
      * Set this when you only want to generate a single file
      */
     @OutputFile
-    @PathSensitive(PathSensitivity.ABSOLUTE)
     File outFile
 
     void setOutFile(File outFile) {

@@ -33,7 +33,7 @@ class DslExtension {
     }
 
     void setOmeXmlFiles(List<File> files) {
-        this.omeXmlFiles project.files(files)
+        this.omeXmlFiles = project.files(files)
     }
 
     void setOutputPath(String path) {

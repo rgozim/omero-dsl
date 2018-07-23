@@ -30,7 +30,6 @@ abstract class DslBaseTask extends DefaultTask {
      * our sources
      */
     @InputFile
-    @PathSensitive(PathSensitivity.ABSOLUTE)
     File template
 
     void setTemplate(File file) {

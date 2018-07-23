@@ -80,7 +80,7 @@ class DslPluginBase implements Plugin<Project> {
                     omeXmlFiles = getOmeXmlFiles(op)
                 }
                 addCleanTask(project, taskName, task.outputPath)
-                addAfterCompileJava(project, task)
+                setTaskOrdering(project, task)
             }
         }
     }
@@ -99,7 +99,7 @@ class DslPluginBase implements Plugin<Project> {
                     omeXmlFiles = getOmeXmlFiles(op)
                 }
                 addCleanTask(project, taskName, task.outFile)
-                addAfterCompileJava(project, task)
+                setTaskOrdering(project, task)
             }
         }
     }
@@ -142,16 +142,17 @@ class DslPluginBase implements Plugin<Project> {
 
     def addCleanTask(Project project, String taskName, File toDelete) {
         String cleanTaskName = "clean${taskName.capitalize()}"
-        def cleanTask = project.tasks.create(cleanTaskName, Delete) {
-            it.delete toDelete
+        project.tasks.create(cleanTaskName, Delete) {
+            group GROUP
+            delete toDelete
+            shouldRunAfter project.tasks.getByName('clean')
         }
-        cleanTask.shouldRunAfter project.tasks.getByName('clean')
     }
 
-    def addAfterCompileJava(Project project, DslBaseTask task) {
-        // Add dsl task to list of org.openmicroscopy.dsl.tasks
+    def setTaskOrdering(Project project, DslBaseTask task) {
+        // Add dsl task to list of tasks
         if (project.plugins.hasPlugin(JavaPlugin)) {
-            // Ensure the org.openmicroscopy.dsl.DslBaseTasky.dsl.tasks.DslBaseTask runs before compileJava
+            // Ensure the DslBaseTask runs before compileJava
             project.tasks.getByName("compileJava")
                     .dependsOn(task)
         }

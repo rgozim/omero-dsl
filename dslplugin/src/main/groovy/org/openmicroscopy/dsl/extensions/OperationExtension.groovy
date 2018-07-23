@@ -41,12 +41,12 @@ class OperationExtension {
         }
     }
 
-    void omeXmlFiles(List<File> files) {
-        this.setOmeXmlFiles(files)
+    void setOmeXmlFiles(List<File> files) {
+        this.omeXmlFiles = project.files(files)
     }
 
-    void setOmeXmlFiles(List<File> files) {
-        this.omeXmlFiles project.files(files)
+    void omeXmlFiles(List<File> files) {
+        this.omeXmlFiles(project.files(files))
     }
 }
 

@@ -3,14 +3,12 @@ package org.openmicroscopy.dsl.tasks
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
-import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 
 class DslMultiFileTask extends DslBaseTask {
 
-    @Internal
+    @Nested
     MultiFileGenerator.FileNameFormatter formatOutput
 
     /**
@@ -18,7 +16,6 @@ class DslMultiFileTask extends DslBaseTask {
      * Note: also requires setting {@link this.formatOutput}
      */
     @OutputDirectory
-    @PathSensitive(PathSensitivity.ABSOLUTE)
     File outputPath
 
     void setFormatOutput(Closure formatter) {
