@@ -60,7 +60,6 @@ abstract class DslBaseTask extends DefaultTask {
         setOmeXmlFiles(files)
     }
 
-
     @TaskAction
     void apply() {
         // Determine which type of file generator to use
