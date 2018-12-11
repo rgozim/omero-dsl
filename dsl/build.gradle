@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'maven-publish'
 }
 
@@ -11,9 +11,9 @@ sourceCompatibility = 1.8
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile 'org.apache.velocity:velocity-engine-core:2.0'
-    compile 'commons-io:commons-io:2.6'
-    compile 'org.slf4j:slf4j-simple:1.8.0-beta1'
+    api 'commons-io:commons-io:2.6'
+    api 'org.apache.velocity:velocity-engine-core:2.0'
+    implementation 'org.slf4j:slf4j-simple:1.8.0-beta1'
 }
 
 task sourceJar(type: Jar) {

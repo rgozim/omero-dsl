@@ -5,19 +5,21 @@ import org.junit.rules.TemporaryFolder
 import org.openmicroscopy.dsl.extensions.DslExtension
 import spock.lang.Specification
 
+
 class DslExtensionTest extends Specification {
 
     @Rule
     final TemporaryFolder testProjectDir = new TemporaryFolder()
     Project project
+    DslExtension dsl
 
     def setup() {
-        project = ProjectBuilder.builder().build()
+        project = ProjectBuilder.builder().withProjectDir(testProjectDir.root).build()
+        dsl = project.extensions.create('dslExt', DslExtension, project)
     }
 
     def "OutputPath is absolute"() {
         when:
-        def dsl = new DslExtension()
         dsl.outputPath "someFolder"
 
         then:
@@ -30,12 +32,11 @@ class DslExtensionTest extends Specification {
         def folderB = createFilesInFolder(testProjectDir.newFolder("B"))
 
         when:
-        def dsl = new DslExtension()
         dsl.templateFiles project.fileTree(dir: folderA, include: '*.file')
         dsl.templateFiles project.fileTree(dir: folderB, include: '*.file')
 
         then:
-        dsl.templateDir.size() == 6
+        dsl.templateFiles.size() == 6
     }
 
     def "OmeXmlFiles support multiple dirs"() {
@@ -44,7 +45,6 @@ class DslExtensionTest extends Specification {
         def folderB = createFilesInFolder(testProjectDir.newFolder("B"))
 
         when:
-        def dsl = new DslExtension()
         dsl.omeXmlFiles project.fileTree(dir: folderA, include: '*.file')
         dsl.omeXmlFiles project.fileTree(dir: folderB, include: '*.file')
 
