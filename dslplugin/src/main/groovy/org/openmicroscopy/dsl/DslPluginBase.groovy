@@ -2,15 +2,14 @@ package org.openmicroscopy.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Delete
 import org.openmicroscopy.dsl.extensions.CodeExtension
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.OperationExtension
 import org.openmicroscopy.dsl.extensions.ResourceExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
-import org.openmicroscopy.dsl.tasks.DslBaseTask
 import org.openmicroscopy.dsl.tasks.DslMultiFileTask
 import org.openmicroscopy.dsl.tasks.DslSingleFileTask
 
@@ -80,7 +79,6 @@ class DslPluginBase implements Plugin<Project> {
                     omeXmlFiles = getOmeXmlFiles(op)
                 }
                 addCleanTask(project, taskName, task.outputPath)
-                setTaskOrdering(project, task)
             }
         }
     }
@@ -99,7 +97,6 @@ class DslPluginBase implements Plugin<Project> {
                     omeXmlFiles = getOmeXmlFiles(op)
                 }
                 addCleanTask(project, taskName, task.outFile)
-                setTaskOrdering(project, task)
             }
         }
     }
@@ -114,7 +111,7 @@ class DslPluginBase implements Plugin<Project> {
         }
     }
 
-    def getOutput(CodeExtension codeExt) {
+    File getOutput(CodeExtension codeExt) {
         File file = codeExt.outputPath
         if (!file.isAbsolute()) {
             file = new File(dslExt.outputPath, file.path)
@@ -123,7 +120,7 @@ class DslPluginBase implements Plugin<Project> {
         return file
     }
 
-    def getOutput(ResourceExtension resExt) {
+    File getOutput(ResourceExtension resExt) {
         File file = resExt.outputFile
         if (!file.isAbsolute()) {
             file = new File(dslExt.outputPath, file.path)
@@ -132,7 +129,7 @@ class DslPluginBase implements Plugin<Project> {
         return file
     }
 
-    def getOmeXmlFiles(OperationExtension dsl) {
+    FileCollection getOmeXmlFiles(OperationExtension dsl) {
         if (dsl.omeXmlFiles) {
             return dsl.omeXmlFiles
         } else {
@@ -146,15 +143,6 @@ class DslPluginBase implements Plugin<Project> {
             group GROUP
             delete toDelete
             shouldRunAfter project.tasks.getByName('clean')
-        }
-    }
-
-    def setTaskOrdering(Project project, DslBaseTask task) {
-        // Add dsl task to list of tasks
-        if (project.plugins.hasPlugin(JavaPlugin)) {
-            // Ensure the DslBaseTask runs before compileJava
-            project.tasks.getByName("compileJava")
-                    .dependsOn(task)
         }
     }
 }

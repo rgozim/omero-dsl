@@ -40,6 +40,10 @@ abstract class DslBaseTask extends DefaultTask {
         setTemplate(file)
     }
 
+    void template(String file) {
+        setTemplate(new File(file))
+    }
+
     void setOmeXmlFiles(FileCollection files) {
         if (omeXmlFiles) {
             omeXmlFiles = omeXmlFiles + files

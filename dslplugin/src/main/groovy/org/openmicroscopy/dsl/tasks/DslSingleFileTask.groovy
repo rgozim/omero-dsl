@@ -20,6 +20,10 @@ class DslSingleFileTask extends DslBaseTask {
         setOutFile(outFile)
     }
 
+    void outFile(String file) {
+        setOutFile(new File(file))
+    }
+
     @Override
     protected Generator.Builder createGenerator() {
         return new SingleFileGenerator.Builder()
