@@ -61,7 +61,7 @@ class DslPluginBase implements Plugin<Project> {
 
     def configureVelocityExtension(Project project) {
         // Set some defaults for velocity
-        velocityExt.loggerClassName = project.getLogger().getClass().getName()
+        // velocityExt.loggerClassName = project.getLogger().getClass().getName()
     }
 
     def configureCodeTasks(Project project) {

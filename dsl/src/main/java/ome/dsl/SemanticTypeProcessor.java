@@ -1,5 +1,6 @@
 package ome.dsl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,9 +17,16 @@ public class SemanticTypeProcessor implements Callable<Collection<SemanticType>>
 
     private final String profile;
 
-    public SemanticTypeProcessor(String profile, Map<String, SemanticType> types) {
+    private final Properties dbTypes;
+
+    public SemanticTypeProcessor(String profile, Map<String, SemanticType> types) throws IOException {
         this.profile = profile;
         this.types = types;
+
+        // Load the properties files from here
+        String typesResource = "properties/" + profile + "-types.properties";
+        dbTypes = new Properties();
+        dbTypes.load(getClass().getClassLoader().getResourceAsStream(typesResource));
     }
 
     @Override

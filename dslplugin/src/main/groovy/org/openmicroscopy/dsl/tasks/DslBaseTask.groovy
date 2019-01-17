@@ -80,7 +80,7 @@ abstract class DslBaseTask extends DefaultTask {
         builder.omeXmlFiles = omeXmlFiles as Collection
         builder.template = template
         builder.profile = profile
-        builder.build().run()
+        builder.build().call()
     }
 
     protected File setAbsPath(File file) {

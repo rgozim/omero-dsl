@@ -65,7 +65,7 @@ public abstract class Property { // TODO need to define equality so that two
         FIELDS.add(MAP);
     }
 
-    public final static Map<String, Class<? extends Property>> FIELDS2CLASSES = new HashMap<String, Class<? extends Property>>();
+    public final static Map<String, Class<? extends Property>> FIELDS2CLASSES = new HashMap<>();
     static {
         FIELDS2CLASSES.put(REQUIRED, RequiredField.class);
         FIELDS2CLASSES.put(OPTIONAL, OptionalField.class);
@@ -116,7 +116,7 @@ public abstract class Property { // TODO need to define equality so that two
 
     public final static String PERCENTFRACTION = "PercentFraction";
 
-    public final static Map<String, String> JAVATYPES = new HashMap<String, String>();
+    public final static Map<String, String> JAVATYPES = new HashMap<>();
     static {
         JAVATYPES.put(STRING, String.class.getName());
         JAVATYPES.put(BOOLEAN, Boolean.class.getName());
@@ -136,8 +136,6 @@ public abstract class Property { // TODO need to define equality so that two
         JAVATYPES.put(STRINGS2, "java.util.List<String[]>");
         JAVATYPES.put(INTEGERS, INTEGERS);
     }
-
-//    public final Properties DBTYPES;
 
     /**
      * The {@link SemanticType} instance which this property belongs to
@@ -189,7 +187,7 @@ public abstract class Property { // TODO need to define equality so that two
     public void validate() {
         if (null == getName() || null == getType()) {
             throw new IllegalStateException(
-                    "All propeties must have a name and a type. (" + this + ")");
+                    "All properties must have a name and a type. (" + this + ")");
         }
     }
 
@@ -197,11 +195,8 @@ public abstract class Property { // TODO need to define equality so that two
      * creates a new property based on the element-valued key in FIELDS2CLASSES.
      * Used mainly by the xml reader
      */
-    public static Property makeNew(String element, SemanticType st,
-            Properties attributes) throws IllegalArgumentException,
-            IllegalStateException {
-
-
+    public static Property makeNew(String element, SemanticType st, Properties attributes)
+            throws IllegalArgumentException, IllegalStateException {
         Class<? extends Property> klass = FIELDS2CLASSES.get(element);
         if (null == klass) {
             throw new IllegalArgumentException(
@@ -211,10 +206,6 @@ public abstract class Property { // TODO need to define equality so that two
         try {
             return klass.getConstructor(new Class[] { SemanticType.class, Properties.class })
                     .newInstance(st, attributes);
-
-//            Class[] ks = new Class[] { SemanticType.class, Properties.class };
-//            p = klass.getConstructor(ks)
-//                    .newInstance(new Object[] { st, attributes });
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Cannot instantiate class " + klass, e);
@@ -300,13 +291,13 @@ public abstract class Property { // TODO need to define equality so that two
     /**
      * Read-only variable
      */
-//    public String getDbType() {
-//        String t = DBTYPES.getProperty(type);
-//        if (t == null) {
-//            return SemanticType.typeToColumn(type);
-//        }
-//        return t;
-//    }
+    public String getDbType() {
+        String t = JavaToDbType.getInstance(st.profile).getProperty(type);
+        if (t == null) {
+            return SemanticType.typeToColumn(type);
+        }
+        return t;
+    }
 
     /**
      * Read-only variable
@@ -522,10 +513,10 @@ public abstract class Property { // TODO need to define equality so that two
      * @return the database definition for the property's type, or an empty string
      * @see <a href="https://trac.openmicroscopy.org/ome/ticket/803">ticket 803</a>
      */
-//    public String getDef() {
-//        final String def = DBTYPES.getProperty(type);
-//        return def == null ? "" : def;
-//    }
+    public String getDef() {
+        final String def = JavaToDbType.getInstance(st.profile).getProperty(type);
+        return def == null ? "" : def;
+    }
 
     /**
      * Read-only property, for subclassing
@@ -538,7 +529,7 @@ public abstract class Property { // TODO need to define equality so that two
      * creates a Property and sets fields based on attributes USING DEFAULT
      * VALUES. Subclassees may override these values
      */
-    public Property(SemanticType st, Properties attrs) {
+    protected Property(SemanticType st, Properties attrs) {
         setSt(st);
         setName(attrs.getProperty("name", null));
         setType(attrs.getProperty("type", null));
@@ -562,16 +553,6 @@ public abstract class Property { // TODO need to define equality so that two
         setInsert(Boolean.TRUE);
         setUpdate(Boolean.valueOf(attrs.getProperty("mutable", "true")));
 
-        // Load DBTYPES from resource file
-        /*try {
-            DBTYPES = new Properties();
-            String typesResource = "ome/dsl/" + st.profile + "-types.properties";
-            DBTYPES.load(this.getClass().getClassLoader()
-                    .getResourceAsStream(typesResource));
-        } catch (IOException e) {
-            throw new RuntimeException("Error loading DB types: " + e.getMessage(), e);
-        }*/
-
         if (JAVATYPES.containsKey(type)) {
             setForeignKey(null);
         } else {
@@ -594,6 +575,16 @@ public abstract class Property { // TODO need to define equality so that two
     private static String firstCap(String str) {
         return str.substring(0, 1).toUpperCase()
         + str.substring(1, str.length());
+    }
+}
+
+// NOTE: For all the following be sure to check the defaults set on Property!
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~ Simple
+// ========
+class OptionalField extends Property {
+    public OptionalField(SemanticType st, Properties attrs) {
+        super(st, attrs);
     }
 }
 
@@ -719,17 +710,6 @@ class ParentLink extends AbstractLink {
         return true;
     }
 }
-
-// NOTE: For all the following be sure to check the defaults set on Property!
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~ Simple
-// ========
-class OptionalField extends Property {
-    public OptionalField(SemanticType st, Properties attrs) {
-        super(st, attrs);
-    }
-}
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~ Many-1

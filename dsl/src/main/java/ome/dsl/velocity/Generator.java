@@ -26,10 +26,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
-public abstract class Generator implements Runnable {
+public abstract class Generator implements Callable<Void> {
 
-    final Logger log = LoggerFactory.getLogger(Generator.class);
+    private final Logger Log = LoggerFactory.getLogger(Generator.class);
 
     /**
      * Profile thing
@@ -70,7 +71,7 @@ public abstract class Generator implements Runnable {
         this.velocity = builder.velocity;
     }
 
-    List<SemanticType> loadSemanticTypes(Collection<File> files) {
+    List<SemanticType> loadSemanticTypes(Collection<File> files) throws IOException {
         Map<String, SemanticType> typeMap = new HashMap<>();
         MappingReader sr = new MappingReader(profile);
         for (File file : files) {
@@ -86,41 +87,18 @@ public abstract class Generator implements Runnable {
         return new SemanticTypeProcessor(profile, typeMap).call();
     }
 
-    void parseTemplate(VelocityContext vc, File template, File output) {
-        InputStream in = getTemplateStream(template);
-        OutputStream os = getOutputStream(output);
+    void parseTemplate(VelocityContext vc, File template, File output) throws IOException {
+        InputStream in = FileUtils.openInputStream(template);
+        OutputStream os = FileUtils.openOutputStream(output);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));
              BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
-
-            velocity.evaluate(vc, result,
-                    "Processing template: " + this.template.getName(), reader);
-
+            velocity.evaluate(vc, result, "Processing template: " + this.template.getName(), reader);
         } catch (ParseErrorException e) {
-            log.error("Error parsing template", e);
-        } catch (IOException | MethodInvocationException e) {
-            log.error("", e);
+            Log.error("Error parsing template", e);
+        } catch (MethodInvocationException e) {
+            Log.error("", e);
         }
-    }
-
-    private InputStream getTemplateStream(File template) {
-        InputStream in = null;
-        try {
-            in = FileUtils.openInputStream(template);
-        } catch (IOException e) {
-            log.error("Error with template:" + template.getName(), e);
-        }
-        return in;
-    }
-
-    private OutputStream getOutputStream(File output) {
-        OutputStream os = null;
-        try {
-            os = FileUtils.openOutputStream(output);
-        } catch (IOException e) {
-            log.error("Error with output:" + output, e);
-        }
-        return os;
     }
 
     public static abstract class Builder {
