@@ -8,6 +8,10 @@ class VelocityExtension {
 
     final Property<Properties> data
 
+    void setProperty(String key, String value) {
+        data.get().setProperty(key, value)
+    }
+
     void setResourceLoaderClass(Map<String, String> resourceLoaderClass) {
         resourceLoaderClass.each { entry ->
             data.get().setProperty(entry.key, entry.value)
@@ -39,6 +43,76 @@ class VelocityExtension {
         data.get().setProperty(
                 RuntimeConstants.RUNTIME_LOG_NAME,
                 loggerClassName
+        )
+    }
+
+    void maxNumberLoops(int max) {
+        data.get().setProperty(
+                RuntimeConstants.MAX_NUMBER_LOOPS,
+                max as String
+        )
+    }
+
+    void skipInvalidIterator(boolean skipInvalid) {
+        data.get().setProperty(
+                RuntimeConstants.SKIP_INVALID_ITERATOR,
+                skipInvalid as String
+        )
+    }
+
+    void checkEmptyObjects() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void errormsgStart() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void errormsgEnd() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void parseDirectiveMaxdepth() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void defineDirectiveMaxdepth() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void provideScopeControl() {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void setEmptyCheck(boolean emptyCheck) {
+        data.get().setProperty(
+                RuntimeConstants.CHECK_EMPTY_OBJECTS,
+                emptyCheck
+        )
+    }
+
+    void setNullAllowed(boolean nullAllowed) {
+        data.get().setProperty(
+                RuntimeConstants.A,
+                nullAllowed
         )
     }
 
