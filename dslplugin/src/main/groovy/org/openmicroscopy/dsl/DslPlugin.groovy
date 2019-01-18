@@ -14,6 +14,9 @@ class DslPlugin implements Plugin<Project> {
         // Set default .ome.xml mapping files
         plugin.dslExt.omeXmlFiles = OmeXmlLoader.loadOmeXmlFiles(project)
 
+        // Set default for veolocity config
+        plugin.dslExt.velocity.checkEmptyObjects = false
+
         // Order tasks
         setTaskOrdering(project)
     }

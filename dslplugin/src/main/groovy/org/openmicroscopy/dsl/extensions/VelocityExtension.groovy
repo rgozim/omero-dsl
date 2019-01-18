@@ -46,73 +46,52 @@ class VelocityExtension {
         )
     }
 
-    void maxNumberLoops(int max) {
+    void setMaxNumberLoops(int max) {
         data.get().setProperty(
                 RuntimeConstants.MAX_NUMBER_LOOPS,
                 max as String
         )
     }
 
-    void skipInvalidIterator(boolean skipInvalid) {
+    void setSkipInvalidIterator(boolean skipInvalid) {
         data.get().setProperty(
                 RuntimeConstants.SKIP_INVALID_ITERATOR,
                 skipInvalid as String
         )
     }
 
-    void checkEmptyObjects() {
+    void setCheckEmptyObjects(boolean emptyCheck) {
         data.get().setProperty(
                 RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
+                emptyCheck as String
         )
     }
 
-    void errormsgStart() {
+    void setErrorMsgStart(String msgStart) {
         data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
+                RuntimeConstants.ERRORMSG_START,
+                msgStart
         )
     }
 
-    void errormsgEnd() {
+    void setErrorMsgEnd(String msgEnd) {
         data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
+                RuntimeConstants.ERRORMSG_END,
+                msgEnd
         )
     }
 
-    void parseDirectiveMaxdepth() {
+    void setParseDirectiveMaxdepth(int max) {
         data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
+                RuntimeConstants.DEFINE_DIRECTIVE_MAXDEPTH,
+                max as String
         )
     }
 
-    void defineDirectiveMaxdepth() {
+    void setProvideScopeControl(boolean scope) {
         data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
-        )
-    }
-
-    void provideScopeControl() {
-        data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
-        )
-    }
-
-    void setEmptyCheck(boolean emptyCheck) {
-        data.get().setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck
-        )
-    }
-
-    void setNullAllowed(boolean nullAllowed) {
-        data.get().setProperty(
-                RuntimeConstants.A,
-                nullAllowed
+                RuntimeConstants.PROVIDE_SCOPE_CONTROL,
+                scope as String
         )
     }
 
