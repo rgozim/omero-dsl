@@ -17,10 +17,6 @@ abstract class DslBaseTask extends DefaultTask {
     @Input
     String profile
 
-    @Input
-    @Optional
-    Properties velocityProperties
-
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     FileCollection omeXmlFiles
@@ -31,6 +27,10 @@ abstract class DslBaseTask extends DefaultTask {
      */
     @InputFile
     File template
+
+    @Input
+    @Optional
+    Properties velocityProperties = new Properties()
 
     void setTemplate(File file) {
         this.template = setAbsPath(file)
@@ -66,15 +66,9 @@ abstract class DslBaseTask extends DefaultTask {
 
     @TaskAction
     void apply() {
-        // Determine which type of file generator to use
-        // Create and init velocity engine
-        VelocityEngine ve = new VelocityEngine()
-        if (velocityProperties) {
-            ve.init(velocityProperties)
-        } else {
-            ve.init()
-        }
+        VelocityEngine ve = new VelocityEngine(velocityProperties)
 
+        // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
         builder.omeXmlFiles = omeXmlFiles as Collection
