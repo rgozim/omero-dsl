@@ -2,6 +2,7 @@ package org.openmicroscopy.dsl.extensions
 
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.AbstractCopyTask
 
 class DslExtension {
     final Project project
@@ -10,7 +11,7 @@ class DslExtension {
 
     FileCollection templateFiles
 
-    File outputPath
+    File outputDir
 
     void templateFiles(FileCollection files) {
         if (templateFiles) {
@@ -20,36 +21,37 @@ class DslExtension {
         }
     }
 
+    void templateFiles(Object... files) {
+        setTemplateFiles(files)
+    }
+
+    void setTemplateFiles(Object... files) {
+        templateFiles = project.files(files)
+    }
+
     void omeXmlFiles(FileCollection files) {
         if (omeXmlFiles) {
             omeXmlFiles = omeXmlFiles + files
         } else {
             omeXmlFiles = files
         }
+        AbstractCopyTask
     }
 
-    void setOmeXmlFiles(List<File> files) {
-        this.omeXmlFiles = project.files(files)
-    }
-
-    void omeXmlFiles(List<File> files) {
+    void omeXmlFiles(Object... files) {
         setOmeXmlFiles(files)
     }
 
-    void setOutputPath(File path) {
-        if (!path.isAbsolute()) {
-            outputPath = project.file(path)
-        } else {
-            outputPath = path
-        }
+    void setOmeXmlFiles(Object... files) {
+        omeXmlFiles = project.files(files)
     }
 
-    void outputPath(String path) {
-        setOutputPath(new File(path))
+    void outputDir(Object path) {
+        setOutputDir(path)
     }
 
-    void outputPath(File path) {
-        setOutputPath(path)
+    void setOutputDir(Object path) {
+        outputDir = project.file(path)
     }
 
     DslExtension(Project project) {

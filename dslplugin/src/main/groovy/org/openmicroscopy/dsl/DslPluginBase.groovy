@@ -34,7 +34,6 @@ class DslPluginBase implements Plugin<Project> {
         setupDsl(project, baseExt)
 
         // Default configure dsl org.openmicroscopy.dsl.tasks
-        configureVelocityExtension(project)
         configureCodeTasks(project)
         configureResourceTasks(project)
     }
@@ -59,11 +58,6 @@ class DslPluginBase implements Plugin<Project> {
         velocityExt = dslExt.extensions.create('velocity', VelocityExtension, project)
     }
 
-    def configureVelocityExtension(Project project) {
-        // Set some defaults for velocity
-        // velocityExt.loggerClassName = project.getLogger().getClass().getName()
-    }
-
     def configureCodeTasks(Project project) {
         project.afterEvaluate {
             dslExt.code.all { CodeExtension op ->
@@ -74,11 +68,11 @@ class DslPluginBase implements Plugin<Project> {
                     velocityProperties = velocityExt.data.get()
                     profile = op.profile
                     formatOutput = op.formatOutput
-                    outputPath = getOutput(op)
+                    outputDir = getOutput(op)
                     template = getTemplate(op)
                     omeXmlFiles = getOmeXmlFiles(op)
                 }
-                addCleanTask(project, taskName, task.outputPath)
+                addCleanTask(project, taskName, task.outputDir)
             }
         }
     }
@@ -112,20 +106,18 @@ class DslPluginBase implements Plugin<Project> {
     }
 
     File getOutput(CodeExtension codeExt) {
-        File file = codeExt.outputPath
+        File file = codeExt.outputDir
         if (!file.isAbsolute()) {
-            file = new File(dslExt.outputPath, file.path)
+            file = new File(dslExt.outputDir, file.path)
         }
-        println "OuputPath for ${codeExt.name}: " + file.toString()
         return file
     }
 
     File getOutput(ResourceExtension resExt) {
         File file = resExt.outputFile
         if (!file.isAbsolute()) {
-            file = new File(dslExt.outputPath, file.path)
+            file = new File(dslExt.outputDir, file.path)
         }
-        println "OutputDir for ${resExt.name}: " + file.toString()
         return file
     }
 

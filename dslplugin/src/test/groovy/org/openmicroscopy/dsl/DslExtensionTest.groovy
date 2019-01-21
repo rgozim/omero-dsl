@@ -25,7 +25,7 @@ class DslExtensionTest extends Specification {
         dsl.outputPath "someFolder"
 
         then:
-        dsl.outputPath.isAbsolute()
+        dsl.outputDir.isAbsolute()
     }
 
     def "Templates support multiple dirs"() {

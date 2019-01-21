@@ -17,10 +17,6 @@ abstract class DslBaseTask extends DefaultTask {
     @Input
     String profile
 
-    @InputFiles
-    @PathSensitive(PathSensitivity.NONE)
-    FileCollection omeXmlFiles
-
     /**
      * The .vm Velocity template file we want to use to generate
      * our sources
@@ -28,40 +24,35 @@ abstract class DslBaseTask extends DefaultTask {
     @InputFile
     File template
 
+    @InputFiles
+    FileCollection omeXmlFiles = project.files()
+
     @Input
     @Optional
     Properties velocityProperties = new Properties()
 
-    void setTemplate(File file) {
-        this.template = setAbsPath(file)
-    }
-
-    void template(File file) {
+    void template(Object file) {
         setTemplate(file)
     }
 
-    void template(String file) {
-        setTemplate(new File(file))
-    }
-
-    void setOmeXmlFiles(FileCollection files) {
-        if (omeXmlFiles) {
-            omeXmlFiles = omeXmlFiles + files
-        } else {
-            omeXmlFiles = files
-        }
-    }
-
-    void setOmeXmlFiles(List<File> files) {
-        setOmeXmlFiles(project.files(files))
+    void setTemplate(Object file) {
+        this.template = project.file(file)
     }
 
     void omeXmlFiles(FileCollection files) {
         setOmeXmlFiles(files)
     }
 
-    void omeXmlFiles(List<File> files) {
+    void omeXmlFiles(Object... files) {
         setOmeXmlFiles(files)
+    }
+
+    void setOmeXmlFiles(FileCollection files) {
+        omeXmlFiles = omeXmlFiles + files
+    }
+
+    void setOmeXmlFiles(Object... files) {
+        omeXmlFiles = project.files(files)
     }
 
     @TaskAction
@@ -86,4 +77,5 @@ abstract class DslBaseTask extends DefaultTask {
     }
 
     abstract protected Generator.Builder createGenerator()
+
 }
