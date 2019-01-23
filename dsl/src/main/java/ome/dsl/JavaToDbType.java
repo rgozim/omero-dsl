@@ -9,7 +9,7 @@ import java.util.Properties;
 
 /**
  * Be mindful that this is a Singleton class.
- * It's purpose is to map a small number of Java types (such as string[]) to
+ * Its purpose is to map a small number of Java types (such as string[]) to
  * the equivalent type in PSQL, or any other database engine/language.
  */
 public class JavaToDbType {
