@@ -109,7 +109,7 @@ public abstract class Generator implements Callable<Void> {
         private Collection<File> omeXmlFiles;
 
         public Builder setProfile(String profile) {
-            this.profile = profil e;
+            this.profile = profile;
             return this;
         }
 
