@@ -4,10 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.tasks.Delete
 import org.openmicroscopy.dsl.extensions.CodeExtension
 import org.openmicroscopy.dsl.extensions.DslExtension
-import org.openmicroscopy.dsl.extensions.OperationExtension
 import org.openmicroscopy.dsl.extensions.ResourceExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
 import org.openmicroscopy.dsl.tasks.DslMultiFileTask
@@ -47,8 +45,8 @@ class DslPluginBase implements Plugin<Project> {
         dslExt = extensions.create('dsl', DslExtension, project)
 
         // Add NamedDomainObjectContainer for code and resource generators
-        dslExt.extensions.add("code", project.container(CodeExtension, {
-            new CodeExtension(it, project)
+        dslExt.extensions.add("code", project.container(CodeExtension, { name ->
+            new CodeExtension(name, project)
         }))
         dslExt.extensions.add("resource", project.container(ResourceExtension, {
             new ResourceExtension(it, project)
@@ -59,82 +57,55 @@ class DslPluginBase implements Plugin<Project> {
     }
 
     def configureCodeTasks(Project project) {
-        project.afterEvaluate {
-            dslExt.code.all { CodeExtension op ->
-                String taskName = TASK_PREFIX + op.name.capitalize()
-                DslMultiFileTask task = project.tasks.create(taskName, DslMultiFileTask) {
-                    group = GROUP
-                    description = "parses ome.xml files and compiles velocity template"
-                    velocityProperties = velocityExt.data.get()
-                    profile = op.profile
-                    formatOutput = op.formatOutput
-                    outputDir = getOutput(op)
-                    template = getTemplate(op)
-                    omeXmlFiles = getOmeXmlFiles(op)
-                }
-                addCleanTask(project, taskName, task.outputDir)
+        dslExt.code.all { CodeExtension op ->
+            String taskName = TASK_PREFIX + op.name.capitalize()
+            project.tasks.register(taskName, DslMultiFileTask) { t ->
+                t.group = GROUP
+                t.description = "parses ome.xml files and compiles velocity template"
+                t.velocityProperties = velocityExt.data.get()
+                t.profile = op.profile
+                t.formatOutput = op.formatOutput
+                t.outputDir = getOutput(op.outputDir)
+                t.template = getTemplate(op.template)
+                t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
             }
         }
     }
 
     def configureResourceTasks(Project project) {
-        project.afterEvaluate {
-            dslExt.resource.all { ResourceExtension op ->
-                String taskName = TASK_PREFIX + op.name.capitalize()
-                DslSingleFileTask task = project.tasks.create(taskName, DslSingleFileTask) {
-                    group = GROUP
-                    description = "parses ome.xml files and compiles velocity template"
-                    profile = op.profile
-                    velocityProperties = velocityExt.data.get()
-                    outFile = getOutput(op)
-                    template = getTemplate(op)
-                    omeXmlFiles = getOmeXmlFiles(op)
-                }
-                addCleanTask(project, taskName, task.outFile)
+        dslExt.resource.all { ResourceExtension op ->
+            String taskName = TASK_PREFIX + op.name.capitalize()
+            project.tasks.register(taskName, DslSingleFileTask) { t ->
+                t.group = GROUP
+                t.description = "parses ome.xml files and compiles velocity template"
+                t.velocityProperties = velocityExt.data.get()
+                t.profile = op.profile
+                t.outFile = getOutput(op.outputFile)
+                t.template = getTemplate(op.template)
+                t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
             }
         }
     }
 
-    File getTemplate(OperationExtension dslOp) {
-        if (!dslOp.template.isFile()) {
-            return dslExt.templateFiles.find {
-                it.name == dslOp.template.name
+    File getTemplate(File template) {
+        if (!template.isFile()) {
+            return dslExt.templateFiles.files.find {
+                it.name == template.name
             }
         } else {
-            return dslOp.template
+            return template
         }
     }
 
-    File getOutput(CodeExtension codeExt) {
-        File file = codeExt.outputDir
+    File getOutput(File output) {
+        File file = output
         if (!file.isAbsolute()) {
             file = new File(dslExt.outputDir, file.path)
         }
         return file
     }
 
-    File getOutput(ResourceExtension resExt) {
-        File file = resExt.outputFile
-        if (!file.isAbsolute()) {
-            file = new File(dslExt.outputDir, file.path)
-        }
-        return file
-    }
-
-    FileCollection getOmeXmlFiles(OperationExtension dsl) {
-        if (dsl.omeXmlFiles) {
-            return dsl.omeXmlFiles
-        } else {
-            return dslExt.omeXmlFiles
-        }
-    }
-
-    def addCleanTask(Project project, String taskName, File toDelete) {
-        String cleanTaskName = "clean${taskName.capitalize()}"
-        project.tasks.create(cleanTaskName, Delete) {
-            group GROUP
-            delete toDelete
-            shouldRunAfter project.tasks.getByName('clean')
-        }
+    FileCollection getOmeXmlFiles(FileCollection omeXmlFiles) {
+        return dslExt.omeXmlFiles + omeXmlFiles
     }
 }

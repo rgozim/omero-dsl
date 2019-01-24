@@ -8,8 +8,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 abstract class DslBaseTask extends DefaultTask {
@@ -66,14 +64,6 @@ abstract class DslBaseTask extends DefaultTask {
         builder.template = template
         builder.profile = profile
         builder.build().call()
-    }
-
-    protected File setAbsPath(File file) {
-        if (!file.isAbsolute()) {
-            return project.file(file)
-        } else {
-            return file
-        }
     }
 
     abstract protected Generator.Builder createGenerator()
