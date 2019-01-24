@@ -1,25 +1,42 @@
 package org.openmicroscopy.dsl.extensions
 
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.AbstractCopyTask
 
 class OperationExtension {
 
-    public final String name
+    final String name
 
-    public final Project project
+    final Project project
+
+    final ConfigurableFileCollection omeXmlFiles
 
     String profile
 
     File template
 
-    FileCollection omeXmlFiles
-
     protected OperationExtension(String name, Project project) {
         this.name = name
         this.project = project
+        this.omeXmlFiles = project.files()
         this.profile = "psql"
+    }
+
+    void omeXmlFiles(FileCollection files) {
+        omeXmlFiles.setFrom(omeXmlFiles + files)
+    }
+
+    void omeXmlFiles(Object... files) {
+        omeXmlFiles(project.files(files))
+    }
+
+    void setOmeXmlFiles(FileCollection files) {
+        omeXmlFiles.setFrom(files)
+    }
+
+    void setOmeXmlFiles(Object... files) {
+        setOmeXmlFiles(project.files(files))
     }
 
     void template(Object template) {
@@ -28,23 +45,6 @@ class OperationExtension {
 
     void setTemplate(Object t) {
         template = project.file(t)
-    }
-
-    void omeXmlFiles(FileCollection files) {
-        if (omeXmlFiles) {
-            omeXmlFiles = omeXmlFiles + files
-        } else {
-            omeXmlFiles = files
-        }
-        AbstractCopyTask
-    }
-
-    void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
-    }
-
-    void setOmeXmlFiles(Object... files) {
-        omeXmlFiles = project.files(files)
     }
 
 }

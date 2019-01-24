@@ -1,49 +1,55 @@
 package org.openmicroscopy.dsl.extensions
 
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.AbstractCopyTask
 
 class DslExtension {
+
     final Project project
 
-    FileCollection omeXmlFiles
+    final ConfigurableFileCollection omeXmlFiles
 
-    FileCollection templateFiles
+    final ConfigurableFileCollection templateFiles
 
     File outputDir
 
+    DslExtension(Project project) {
+        this.project = project
+        this.omeXmlFiles = project.files()
+        this.templateFiles = project.files()
+    }
+
     void templateFiles(FileCollection files) {
-        if (templateFiles) {
-            templateFiles = templateFiles + files
-        } else {
-            templateFiles = files
-        }
+        templateFiles.setFrom(templateFiles + files)
     }
 
     void templateFiles(Object... files) {
-        setTemplateFiles(files)
+        templateFiles(project.files(files))
+    }
+
+    void setTemplateFiles(FileCollection files) {
+        templateFiles.setFrom(files)
     }
 
     void setTemplateFiles(Object... files) {
-        templateFiles = project.files(files)
+        setTemplateFiles(project.files(files))
     }
 
     void omeXmlFiles(FileCollection files) {
-        if (omeXmlFiles) {
-            omeXmlFiles = omeXmlFiles + files
-        } else {
-            omeXmlFiles = files
-        }
-        AbstractCopyTask
+        omeXmlFiles.setFrom(omeXmlFiles + files)
     }
 
     void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
+        omeXmlFiles(project.files(files))
+    }
+
+    void setOmeXmlFiles(FileCollection files) {
+        omeXmlFiles.setFrom(files)
     }
 
     void setOmeXmlFiles(Object... files) {
-        omeXmlFiles = project.files(files)
+        setOmeXmlFiles(project.files(files))
     }
 
     void outputDir(Object path) {
@@ -54,7 +60,4 @@ class DslExtension {
         outputDir = project.file(path)
     }
 
-    DslExtension(Project project) {
-        this.project = project
-    }
 }

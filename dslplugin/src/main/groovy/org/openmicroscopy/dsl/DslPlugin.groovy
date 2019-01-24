@@ -10,7 +10,7 @@ class DslPlugin implements Plugin<Project> {
         // Apply the base plugin
         def plugin = project.plugins.apply(DslPluginBase)
 
-        // Set default for veolocity config
+        // Set default for velocity config
         plugin.dslExt.velocity.checkEmptyObjects = false
 
         // Order tasks
