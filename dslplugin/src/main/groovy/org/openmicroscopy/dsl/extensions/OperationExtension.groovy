@@ -24,11 +24,11 @@ class OperationExtension {
     }
 
     void omeXmlFiles(FileCollection files) {
-        omeXmlFiles.setFrom(omeXmlFiles + files)
+        setOmeXmlFiles(files)
     }
 
     void omeXmlFiles(Object... files) {
-        omeXmlFiles(project.files(files))
+        setOmeXmlFiles(files)
     }
 
     void setOmeXmlFiles(FileCollection files) {
@@ -39,12 +39,16 @@ class OperationExtension {
         setOmeXmlFiles(project.files(files))
     }
 
-    void template(Object template) {
+    void template(String template) {
         setTemplate(template)
     }
 
-    void setTemplate(Object t) {
-        template = project.file(t)
+    void setTemplate(String t) {
+        setTemplate(new File(t))
+    }
+
+    void setTemplate(File t) {
+        template = t
     }
 
 }

@@ -10,38 +10,21 @@ class DslExtension {
 
     final ConfigurableFileCollection omeXmlFiles
 
-    final ConfigurableFileCollection templateFiles
+    File templatesDir
 
     File outputDir
 
     DslExtension(Project project) {
         this.project = project
         this.omeXmlFiles = project.files()
-        this.templateFiles = project.files()
-    }
-
-    void templateFiles(FileCollection files) {
-        templateFiles.setFrom(templateFiles + files)
-    }
-
-    void templateFiles(Object... files) {
-        templateFiles(project.files(files))
-    }
-
-    void setTemplateFiles(FileCollection files) {
-        templateFiles.setFrom(files)
-    }
-
-    void setTemplateFiles(Object... files) {
-        setTemplateFiles(project.files(files))
     }
 
     void omeXmlFiles(FileCollection files) {
-        omeXmlFiles.setFrom(omeXmlFiles + files)
+        setOmeXmlFiles(files)
     }
 
     void omeXmlFiles(Object... files) {
-        omeXmlFiles(project.files(files))
+        setOmeXmlFiles(files)
     }
 
     void setOmeXmlFiles(FileCollection files) {
@@ -50,6 +33,14 @@ class DslExtension {
 
     void setOmeXmlFiles(Object... files) {
         setOmeXmlFiles(project.files(files))
+    }
+
+    void templatesDir(Object path) {
+        setTemplatesDir(path)
+    }
+
+    void setTemplatesDir(Object path) {
+        templatesDir = project.file(path)
     }
 
     void outputDir(Object path) {

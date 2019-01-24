@@ -88,21 +88,11 @@ class DslPluginBase implements Plugin<Project> {
     }
 
     File getTemplate(File template) {
-        if (!template.isFile()) {
-            return dslExt.templateFiles.files.find {
-                it.name == template.name
-            }
-        } else {
-            return template
-        }
+        return template.absolute ? template : new File(dslExt.templatesDir, template.path)
     }
 
     File getOutput(File output) {
-        File file = output
-        if (!file.isAbsolute()) {
-            file = new File(dslExt.outputDir, file.path)
-        }
-        return file
+        return output.absolute ? output : new File(dslExt.outputDir, output.path)
     }
 
     FileCollection getOmeXmlFiles(FileCollection omeXmlFiles) {
