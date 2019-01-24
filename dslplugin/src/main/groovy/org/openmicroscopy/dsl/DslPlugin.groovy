@@ -1,9 +1,8 @@
 package org.openmicroscopy.dsl
 
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaLibraryPlugin
 import org.openmicroscopy.dsl.tasks.DslBaseTask
 
 class DslPlugin implements Plugin<Project> {
@@ -16,23 +15,20 @@ class DslPlugin implements Plugin<Project> {
         // Set default for velocity config
         plugin.dslExt.velocity.checkEmptyObjects = false
 
+        // Set compileJava to depend on generateXXX tasks
         setTaskOrdering(project)
     }
 
-    def setTaskOrdering(Project project) {
-        project.plugins.withType(JavaPlugin) {
-            def compileJava = project.tasks.getByName("compileJava")
-            if (!compileJava) {
-                throw new GradleException("Requires Java plugin")
+    void setTaskOrdering(Project project) {
+        project.plugins.withType(JavaLibraryPlugin) {
+            project.tasks.named("compileJava").configure { compileJava ->
+                compileJava.dependsOn = project.tasks
+                        .withType(DslBaseTask)
+                        .findAll { it.group == DslPluginBase.GROUP }
             }
-
-            def tasks = project.tasks.withType(DslBaseTask).findAll {
-                it.group == DslPluginBase.GROUP
-            }
-
-            // Ensure generate tasks runs before compileJava
-            tasks.each { compileJava.dependsOn(it) }
         }
     }
 
 }
+
+
