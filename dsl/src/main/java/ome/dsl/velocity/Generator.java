@@ -88,12 +88,13 @@ public abstract class Generator implements Callable<Void> {
     }
 
     void parseTemplate(VelocityContext vc, File template, File output) throws IOException {
-        InputStream in = FileUtils.openInputStream(template);
-        OutputStream os = FileUtils.openOutputStream(output);
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-             BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
-            velocity.evaluate(vc, result, "Processing template: " + this.template.getName(), reader);
+        try (InputStream in = FileUtils.openInputStream(template);
+             OutputStream os = FileUtils.openOutputStream(output);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+             BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
+        {
+             velocity.evaluate(vc, result, "Processing template: " + this.template.getName(), reader);
         } catch (ParseErrorException e) {
             Log.error("Error parsing template", e);
         } catch (MethodInvocationException e) {
