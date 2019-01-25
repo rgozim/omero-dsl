@@ -184,6 +184,8 @@ public abstract class Property { // TODO need to define equality so that two
 
     private Boolean bidirectional;
 
+    private Properties databaseTypes;
+
     public void validate() {
         if (null == getName() || null == getType()) {
             throw new IllegalStateException(
@@ -195,17 +197,16 @@ public abstract class Property { // TODO need to define equality so that two
      * creates a new property based on the element-valued key in FIELDS2CLASSES.
      * Used mainly by the xml reader
      */
-    public static Property makeNew(String element, SemanticType st, Properties attributes)
+    public static Property makeNew(String element, SemanticType st, Properties attributes, Properties databaseTypes)
             throws IllegalArgumentException, IllegalStateException {
         Class<? extends Property> klass = FIELDS2CLASSES.get(element);
         if (null == klass) {
             throw new IllegalArgumentException(
                     "FIELDS2CLASSES does not contain type " + element);
         }
-
         try {
-            return klass.getConstructor(new Class[] { SemanticType.class, Properties.class })
-                    .newInstance(st, attributes);
+            return klass.getConstructor(new Class[] { SemanticType.class, Properties.class, Properties.class })
+                    .newInstance(st, attributes, databaseTypes);
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Cannot instantiate class " + klass, e);
@@ -220,6 +221,8 @@ public abstract class Property { // TODO need to define equality so that two
     //
     // Getters and Setters
     //
+
+    public void setDatabaseTypes(Properties databaseTypes) {  this.databaseTypes = databaseTypes; }
 
     public void setSt(SemanticType st) {
         this.st = st;
@@ -292,7 +295,7 @@ public abstract class Property { // TODO need to define equality so that two
      * Read-only variable
      */
     public String getDbType() {
-        String t = JavaToDbType.getInstance(st.profile).getProperty(type);
+        String t = databaseTypes.getProperty(type);
         if (t == null) {
             return SemanticType.typeToColumn(type);
         }
@@ -514,7 +517,7 @@ public abstract class Property { // TODO need to define equality so that two
      * @see <a href="https://trac.openmicroscopy.org/ome/ticket/803">ticket 803</a>
      */
     public String getDef() {
-        final String def = JavaToDbType.getInstance(st.profile).getProperty(type);
+        final String def = databaseTypes.getProperty(type);
         return def == null ? "" : def;
     }
 
@@ -529,8 +532,9 @@ public abstract class Property { // TODO need to define equality so that two
      * creates a Property and sets fields based on attributes USING DEFAULT
      * VALUES. Subclassees may override these values
      */
-    protected Property(SemanticType st, Properties attrs) {
+    protected Property(SemanticType st, Properties attrs, Properties databaseTypes) {
         setSt(st);
+        setDatabaseTypes(databaseTypes);
         setName(attrs.getProperty("name", null));
         setType(attrs.getProperty("type", null));
         setDefaultValue(attrs.getProperty("default", null));// TODO currently no
@@ -583,14 +587,14 @@ public abstract class Property { // TODO need to define equality so that two
 // ~ Simple
 // ========
 class OptionalField extends Property {
-    public OptionalField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public OptionalField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
     }
 }
 
 class RequiredField extends OptionalField {
-    public RequiredField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public RequiredField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setRequired(Boolean.TRUE);
     }
 }
@@ -599,8 +603,8 @@ class RequiredField extends OptionalField {
 // ~ 1-Many
 // ========
 class ZeroManyField extends Property {
-    public ZeroManyField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public ZeroManyField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setRequired(Boolean.FALSE);
         setOne2Many(Boolean.TRUE);
 
@@ -658,16 +662,16 @@ class ZeroManyField extends Property {
 }
 
 class OneManyField extends ZeroManyField {
-    public OneManyField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public OneManyField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setRequired(Boolean.TRUE);
     }
 }
 
 abstract class AbstractLink extends ZeroManyField {
 
-    public AbstractLink(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public AbstractLink(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setTarget(attrs.getProperty("target", null));
 
     }
@@ -685,8 +689,8 @@ abstract class AbstractLink extends ZeroManyField {
 
 /** property from a child iobject to a link */
 class ChildLink extends AbstractLink {
-    public ChildLink(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public ChildLink(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setForeignKey("child");
         setInverse("parent");
     }
@@ -699,8 +703,8 @@ class ChildLink extends AbstractLink {
 
 /** property from a parent iobject to a link */
 class ParentLink extends AbstractLink {
-    public ParentLink(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public ParentLink(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setForeignKey("parent");
         setInverse("child");
     }
@@ -716,14 +720,14 @@ class ParentLink extends AbstractLink {
 // ========
 
 class ManyZeroField extends Property {
-    public ManyZeroField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public ManyZeroField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
     }
 }
 
 class ManyOneField extends ManyZeroField {
-    public ManyOneField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public ManyOneField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setRequired(Boolean.TRUE);
         if (getOrdered()) {
             setInsert(Boolean.FALSE);
@@ -734,8 +738,8 @@ class ManyOneField extends ManyZeroField {
 
 /** property from a link to a parent iobject */
 class LinkParent extends ManyOneField {
-    public LinkParent(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public LinkParent(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setName("parent");
     }
 
@@ -752,8 +756,8 @@ class LinkParent extends ManyOneField {
 
 /** property from a link to a child iobject */
 class LinkChild extends ManyOneField {
-    public LinkChild(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public LinkChild(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setName("child");
     }
 
@@ -773,8 +777,8 @@ class LinkChild extends ManyOneField {
 // ~ DIFFERENT SEMANTICS!!!
 // ========================
 class EntryField extends Property {
-    public EntryField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public EntryField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setType("string");
         setForeignKey(null);
     }
@@ -792,8 +796,8 @@ class EntryField extends Property {
 
 class DetailsField extends Property {
 
-    public DetailsField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public DetailsField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
         setName("details");
         setType("ome.model.internal.Details");
     }
@@ -806,8 +810,8 @@ class DetailsField extends Property {
 
 class MapField extends Property {
 
-    public MapField(SemanticType st, Properties attrs) {
-        super(st, attrs);
+    public MapField(SemanticType st, Properties attrs, Properties databaseTypes) {
+        super(st, attrs, databaseTypes);
     }
 
 

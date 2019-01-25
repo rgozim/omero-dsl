@@ -26,11 +26,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
+
 
 public abstract class Generator implements Callable<Void> {
 
     private final Logger Log = LoggerFactory.getLogger(Generator.class);
+
+    /**
+     * The database types corresponding to the profiles
+     */
+    private Properties databaseTypes;
 
     /**
      * Profile thing
@@ -69,11 +76,22 @@ public abstract class Generator implements Callable<Void> {
         this.omeXmlFiles = builder.omeXmlFiles;
         this.template = builder.template;
         this.velocity = builder.velocity;
+        // Read the properties file
+        if (databaseTypes == null) {
+            //To review
+            String resource = "properties/" + profile + "-types.properties";
+            databaseTypes = new Properties();
+            try (InputStream stream = Generator.class.getClassLoader().getResourceAsStream(resource)) {
+                databaseTypes.load(stream);
+            } catch (IOException e) {
+                Log.error("Cannot read the properties file: "+resource);
+            }
+        }
     }
 
     List<SemanticType> loadSemanticTypes(Collection<File> files) throws IOException {
         Map<String, SemanticType> typeMap = new HashMap<>();
-        MappingReader sr = new MappingReader(profile);
+        MappingReader sr = new MappingReader(profile, databaseTypes);
         for (File file : files) {
             if (file.exists()) {
                 typeMap.putAll(sr.parse(file));
@@ -84,7 +102,7 @@ public abstract class Generator implements Callable<Void> {
             return Collections.emptyList(); // Skip when no files, otherwise we overwrite.
         }
 
-        return new SemanticTypeProcessor(profile, typeMap).call();
+        return new SemanticTypeProcessor(profile, typeMap, databaseTypes).call();
     }
 
     void parseTemplate(VelocityContext vc, File template, File output) throws IOException {
