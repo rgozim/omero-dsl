@@ -54,7 +54,7 @@ public abstract class Generator implements Callable<Void> {
 
     protected Generator(Builder builder) {
         if (builder.profile == null || builder.profile.isEmpty()) {
-            throw new InvalidParameterException("Generator.profile cannot be null or empty, default is 'psql'");
+            throw new InvalidParameterException("Generator.profile cannot be null or empty");
         }
 
         if (builder.template == null) {
