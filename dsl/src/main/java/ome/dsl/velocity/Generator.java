@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -78,13 +79,11 @@ public abstract class Generator implements Callable<Void> {
         this.velocity = builder.velocity;
         // Read the properties file
         if (databaseTypes == null) {
-            //To review
-            String resource = "properties/" + profile + "-types.properties";
             databaseTypes = new Properties();
-            try (InputStream stream = Generator.class.getClassLoader().getResourceAsStream(resource)) {
+            try (InputStream stream = new FileInputStream(profile)) {
                 databaseTypes.load(stream);
             } catch (IOException e) {
-                Log.error("Cannot read the properties file: "+resource);
+                Log.error("Cannot read the properties file: "+profile);
             }
         }
     }
