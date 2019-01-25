@@ -37,7 +37,7 @@ class DslPlugin implements Plugin<Project> {
             main.java.srcDirs "${project.dsl.outputDir}/java"
             main.resources.srcDirs "${project.dsl.outputDir}/resources"
 
-            // Configure compileJava task to depond on our tasks
+            // Configure compileJava task to depend on our tasks
             project.tasks.named("compileJava").configure { compileJava ->
                 compileJava.dependsOn = project.tasks
                         .withType(DslBaseTask)
