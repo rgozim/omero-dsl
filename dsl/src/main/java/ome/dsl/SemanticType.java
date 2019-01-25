@@ -146,7 +146,7 @@ public abstract class SemanticType {
      * and table names, both keywords and lengths.
      */
     public boolean isRestrictive() {
-        return ! profile.equals("psql");
+        return ! profile.contains("psql");
     }
 
     public void validate() {
