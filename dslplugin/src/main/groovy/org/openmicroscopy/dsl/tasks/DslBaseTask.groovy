@@ -3,7 +3,9 @@ package org.openmicroscopy.dsl.tasks
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -11,6 +13,8 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 
 abstract class DslBaseTask extends DefaultTask {
+
+    private static final def Log = Logging.getLogger(DslBaseTask)
 
     @Input
     String profile
@@ -29,24 +33,24 @@ abstract class DslBaseTask extends DefaultTask {
     @Optional
     Properties velocityProperties = new Properties()
 
-    void template(Object file) {
-        setTemplate(file)
+    File template(Object file) {
+        return setTemplate(file)
     }
 
     void setTemplate(Object file) {
         this.template = project.file(file)
     }
 
-    void omeXmlFiles(FileCollection files) {
-        setOmeXmlFiles(files)
+    FileCollection omeXmlFiles(FileCollection files) {
+        return omeXmlFiles = omeXmlFiles + files
     }
 
-    void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
+    FileCollection omeXmlFiles(Object... files) {
+        return omeXmlFiles(project.files(files))
     }
 
     void setOmeXmlFiles(FileCollection files) {
-        omeXmlFiles = omeXmlFiles + files
+        omeXmlFiles = files
     }
 
     void setOmeXmlFiles(Object... files) {
@@ -55,12 +59,28 @@ abstract class DslBaseTask extends DefaultTask {
 
     @TaskAction
     void apply() {
+        def directories = omeXmlFiles.findAll {
+            it.isDirectory()
+        }
+
+        def files = omeXmlFiles.findAll {
+            it.isFile() && it.name.endsWith(".ome.xml")
+        }
+
+        files = files + directories.collectMany {
+            project.fileTree(dir: it, include: "**/*.ome.xml").files
+        }
+
+        files.each {
+            Log.info(it.name)
+        }
+
         VelocityEngine ve = new VelocityEngine(velocityProperties)
 
         // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
-        builder.omeXmlFiles = omeXmlFiles as Collection
+        builder.omeXmlFiles = files
         builder.template = template
         builder.profile = profile
         builder.build().call()
