@@ -16,11 +16,11 @@ class OperationExtension {
 
     File template
 
-    protected OperationExtension(String name, Project project) {
+    protected OperationExtension(String name, Project project, String profile) {
         this.name = name
         this.project = project
         this.omeXmlFiles = project.files()
-        this.profile = "psql"
+        this.profile = profile
     }
 
     void omeXmlFiles(FileCollection files) {
@@ -49,6 +49,14 @@ class OperationExtension {
 
     void setTemplate(File t) {
         template = t
+    }
+
+    void profile(String profile) {
+        setProfile(profile)
+    }
+
+    void setProfile(String t) {
+        profile = t
     }
 
 }
