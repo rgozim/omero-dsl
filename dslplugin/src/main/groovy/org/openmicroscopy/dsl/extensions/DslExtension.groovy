@@ -14,6 +14,8 @@ class DslExtension {
 
     File outputDir
 
+    String profile
+
     DslExtension(Project project) {
         this.project = project
         this.omeXmlFiles = project.files()
@@ -51,4 +53,11 @@ class DslExtension {
         outputDir = project.file(path)
     }
 
+    void profile(String profile) {
+        setProfile(profile)
+    }
+
+    void setProfile(String t) {
+        profile = t
+    }
 }
