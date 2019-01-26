@@ -63,7 +63,7 @@ class DslPluginBase implements Plugin<Project> {
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
                 t.velocityProperties = velocityExt.data.get()
-                t.profile = op.profile
+                t.databaseTypes = op.profile
                 t.formatOutput = op.formatOutput
                 t.outputDir = getOutput(op.outputDir)
                 t.template = getTemplate(op.template)
@@ -79,7 +79,7 @@ class DslPluginBase implements Plugin<Project> {
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
                 t.velocityProperties = velocityExt.data.get()
-                t.profile = op.profile
+                t.databaseTypes = op.profile
                 t.outFile = getOutput(op.outputFile)
                 t.template = getTemplate(op.template)
                 t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)

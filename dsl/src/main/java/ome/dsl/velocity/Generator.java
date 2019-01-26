@@ -15,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -65,6 +64,10 @@ public abstract class Generator implements Callable<Void> {
             throw new InvalidParameterException("Generator.profile cannot be null or empty");
         }
 
+        if (builder.databaseTypes == null || builder.databaseTypes.isEmpty()) {
+            throw new InvalidParameterException("Generator.databaseTypes cannot be null or empty");
+        }
+
         if (builder.template == null) {
             throw new InvalidParameterException("Velocity '.vm' files missing or not set!");
         }
@@ -74,21 +77,13 @@ public abstract class Generator implements Callable<Void> {
         }
 
         this.profile = builder.profile;
+        this.databaseTypes = builder.databaseTypes;
         this.omeXmlFiles = builder.omeXmlFiles;
         this.template = builder.template;
         this.velocity = builder.velocity;
-        // Read the properties file
-        if (databaseTypes == null) {
-            databaseTypes = new Properties();
-            try (InputStream stream = new FileInputStream(profile)) {
-                databaseTypes.load(stream);
-            } catch (IOException e) {
-                Log.error("Cannot read the properties file: "+profile);
-            }
-        }
     }
 
-    List<SemanticType> loadSemanticTypes(Collection<File> files) throws IOException {
+    List<SemanticType> loadSemanticTypes(Collection<File> files) {
         Map<String, SemanticType> typeMap = new HashMap<>();
         MappingReader sr = new MappingReader(profile, databaseTypes);
         for (File file : files) {
@@ -105,13 +100,11 @@ public abstract class Generator implements Callable<Void> {
     }
 
     void parseTemplate(VelocityContext vc, File template, File output) throws IOException {
-
         try (InputStream in = FileUtils.openInputStream(template);
              OutputStream os = FileUtils.openOutputStream(output);
              BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-             BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
-        {
-             velocity.evaluate(vc, result, "Processing template: " + this.template.getName(), reader);
+             BufferedWriter result = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
+            velocity.evaluate(vc, result, "Processing template: " + this.template.getName(), reader);
         } catch (ParseErrorException e) {
             Log.error("Error parsing template", e);
         } catch (MethodInvocationException e) {
@@ -121,12 +114,18 @@ public abstract class Generator implements Callable<Void> {
 
     public static abstract class Builder {
         private String profile;
+        private Properties databaseTypes;
         private File template;
         private VelocityEngine velocity;
         private Collection<File> omeXmlFiles;
 
         public Builder setProfile(String profile) {
             this.profile = profile;
+            return this;
+        }
+
+        public Builder setDatabaseTypes(Properties databaseTypes) {
+            this.databaseTypes = databaseTypes;
             return this;
         }
 

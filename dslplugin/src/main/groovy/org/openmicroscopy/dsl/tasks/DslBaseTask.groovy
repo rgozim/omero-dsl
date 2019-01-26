@@ -3,6 +3,7 @@ package org.openmicroscopy.dsl.tasks
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
@@ -15,13 +16,9 @@ abstract class DslBaseTask extends DefaultTask {
 
     private static final def Log = Logging.getLogger(DslBaseTask)
 
-    @Input
-    String profile
+    @InputFile
+    File databaseTypes
 
-    /**
-     * The .vm Velocity template file we want to use to generate
-     * our sources
-     */
     @InputFile
     File template
 
@@ -58,6 +55,43 @@ abstract class DslBaseTask extends DefaultTask {
 
     @TaskAction
     void apply() {
+        VelocityEngine ve = new VelocityEngine(velocityProperties)
+
+        // Build our file generator
+        def builder = createGenerator()
+        builder.velocityEngine = ve
+        builder.profile = profile
+        builder.databaseTypes = databaseTypeProperties
+        builder.omeXmlFiles = allOmeXmlFiles
+        builder.template = template
+        builder.build().call()
+    }
+
+    abstract protected Generator.Builder createGenerator()
+
+    /**
+     * Temp undecided method that reads the profile from the file name of
+     * @code databaseTypes*
+     *
+     * Format example : psql-types.properties
+     *
+     * @return profile portion of filename
+     */
+    private String getProfile() {
+        int index = databaseTypes.name.indexOf("-")
+        if (index == -1) {
+            throw new GradleException("Invalid database types .properties file name")
+        }
+        return databaseTypes.name.substring(0, index)
+    }
+
+    private Properties getDatabaseTypeProperties() {
+        Properties databaseTypeProps = new Properties()
+        databaseTypes.withInputStream { databaseTypeProps.load(it) }
+        return databaseTypeProps
+    }
+
+    private List<File> getAllOmeXmlFiles() {
         def directories = omeXmlFiles.findAll {
             it.isDirectory()
         }
@@ -70,21 +104,7 @@ abstract class DslBaseTask extends DefaultTask {
             project.fileTree(dir: it, include: "**/*.ome.xml").files
         }
 
-        files.each {
-            Log.info(it.name)
-        }
-
-        VelocityEngine ve = new VelocityEngine(velocityProperties)
-
-        // Build our file generator
-        def builder = createGenerator()
-        builder.velocityEngine = ve
-        builder.omeXmlFiles = files
-        builder.template = template
-        builder.profile = profile
-        builder.build().call()
+        return files
     }
-
-    abstract protected Generator.Builder createGenerator()
 
 }

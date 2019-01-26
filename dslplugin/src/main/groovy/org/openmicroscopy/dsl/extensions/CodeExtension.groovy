@@ -8,8 +8,8 @@ class CodeExtension extends OperationExtension {
 
     Closure formatOutput
 
-    CodeExtension(String name, Project project, String profile) {
-        super(name, project, profile)
+    CodeExtension(String name, Project project) {
+        super(name, project)
     }
 
     void outputDir(File dir) {

@@ -12,15 +12,14 @@ class OperationExtension {
 
     final ConfigurableFileCollection omeXmlFiles
 
-    String profile
+    File databaseTypes
 
     File template
 
-    protected OperationExtension(String name, Project project, String profile) {
+    protected OperationExtension(String name, Project project) {
         this.name = name
         this.project = project
         this.omeXmlFiles = project.files()
-        this.profile = profile
     }
 
     void omeXmlFiles(FileCollection files) {
@@ -37,6 +36,22 @@ class OperationExtension {
 
     void setOmeXmlFiles(Object... files) {
         setOmeXmlFiles(project.files(files))
+    }
+
+    void databaseTypes(String databaseTypes) {
+        setDatabaseTypes(databaseTypes)
+    }
+
+    void databaseTypes(File databaseTypes) {
+        setDatabaseTypes(databaseTypes)
+    }
+
+    void setDatabaseTypes(String databaseTypes) {
+        setDatabaseTypes(new File(databaseTypes))
+    }
+
+    void setDatabaseTypes(File databaseTypes) {
+        this.databaseTypes = databaseTypes
     }
 
     void template(String template) {

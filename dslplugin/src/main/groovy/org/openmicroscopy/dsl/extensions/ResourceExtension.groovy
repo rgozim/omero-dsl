@@ -6,8 +6,8 @@ class ResourceExtension extends OperationExtension {
 
     File outputFile
 
-    ResourceExtension(String name, Project project, String profile) {
-        super(name, project, profile)
+    ResourceExtension(String name, Project project) {
+        super(name, project)
     }
 
     void setOutputFile(String file) {
