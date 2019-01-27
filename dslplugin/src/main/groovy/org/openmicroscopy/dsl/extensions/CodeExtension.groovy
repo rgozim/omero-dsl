@@ -27,4 +27,5 @@ class CodeExtension extends OperationExtension {
     void formatOutput(Closure closure) {
         this.formatOutput = closure
     }
+
 }

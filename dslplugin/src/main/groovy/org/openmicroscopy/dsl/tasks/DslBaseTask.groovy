@@ -1,9 +1,9 @@
 package org.openmicroscopy.dsl.tasks
 
 import ome.dsl.velocity.Generator
+import org.apache.commons.lang3.StringUtils
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
@@ -29,6 +29,26 @@ abstract class DslBaseTask extends DefaultTask {
     @Optional
     Properties velocityProperties = new Properties()
 
+    abstract protected Generator.Builder createGenerator()
+
+    @TaskAction
+    void apply() {
+        Log.info("Template : $template.name")
+        Log.info("DatabaseTypesFile : $databaseTypes.name")
+        Log.info("Profile : ${StringUtils.substringBefore(databaseTypes.name, '-')}")
+
+        VelocityEngine ve = new VelocityEngine(velocityProperties)
+
+        // Build our file generator
+        def builder = createGenerator()
+        builder.velocityEngine = ve
+        builder.profile = profile
+        builder.databaseTypes = databaseTypeProperties
+        builder.omeXmlFiles = allOmeXmlFiles
+        builder.template = template
+        builder.build().call()
+    }
+
     File template(Object file) {
         return setTemplate(file)
     }
@@ -53,22 +73,6 @@ abstract class DslBaseTask extends DefaultTask {
         omeXmlFiles = project.files(files)
     }
 
-    @TaskAction
-    void apply() {
-        VelocityEngine ve = new VelocityEngine(velocityProperties)
-
-        // Build our file generator
-        def builder = createGenerator()
-        builder.velocityEngine = ve
-        builder.profile = profile
-        builder.databaseTypes = databaseTypeProperties
-        builder.omeXmlFiles = allOmeXmlFiles
-        builder.template = template
-        builder.build().call()
-    }
-
-    abstract protected Generator.Builder createGenerator()
-
     /**
      * Temp undecided method that reads the profile from the file name of
      * @code databaseTypes*
@@ -77,21 +81,17 @@ abstract class DslBaseTask extends DefaultTask {
      *
      * @return profile portion of filename
      */
-    private String getProfile() {
-        int index = databaseTypes.name.indexOf("-")
-        if (index == -1) {
-            throw new GradleException("Invalid database types .properties file name")
-        }
-        return databaseTypes.name.substring(0, index)
+    String getProfile() {
+        return StringUtils.substringBefore(databaseTypes.name, '-')
     }
 
-    private Properties getDatabaseTypeProperties() {
+    Properties getDatabaseTypeProperties() {
         Properties databaseTypeProps = new Properties()
         databaseTypes.withInputStream { databaseTypeProps.load(it) }
         return databaseTypeProps
     }
 
-    private List<File> getAllOmeXmlFiles() {
+    List<File> getAllOmeXmlFiles() {
         def directories = omeXmlFiles.findAll {
             it.isDirectory()
         }

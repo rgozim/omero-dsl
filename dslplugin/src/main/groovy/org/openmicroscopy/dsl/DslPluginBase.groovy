@@ -8,6 +8,8 @@ import org.openmicroscopy.dsl.extensions.CodeExtension
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.ResourceExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
+import org.openmicroscopy.dsl.factories.CodeFactory
+import org.openmicroscopy.dsl.factories.ResourceFactory
 import org.openmicroscopy.dsl.tasks.DslMultiFileTask
 import org.openmicroscopy.dsl.tasks.DslSingleFileTask
 
@@ -45,12 +47,8 @@ class DslPluginBase implements Plugin<Project> {
         dslExt = extensions.create('dsl', DslExtension, project)
 
         // Add NamedDomainObjectContainer for code and resource generators
-        dslExt.extensions.add("code", project.container(CodeExtension, { name ->
-            new CodeExtension(name, project, dslExt.profile)
-        }))
-        dslExt.extensions.add("resource", project.container(ResourceExtension, {
-            new ResourceExtension(it, project, dslExt.profile)
-        }))
+        dslExt.extensions.add("code", project.container(CodeExtension, new CodeFactory(project)))
+        dslExt.extensions.add("resource", project.container(ResourceExtension, new ResourceFactory(project)))
 
         // Create velocity inner extension for dsl
         velocityExt = dslExt.extensions.create('velocity', VelocityExtension, project)
@@ -63,10 +61,10 @@ class DslPluginBase implements Plugin<Project> {
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
                 t.velocityProperties = velocityExt.data.get()
-                t.databaseTypes = op.profile
                 t.formatOutput = op.formatOutput
-                t.outputDir = getOutput(op.outputDir)
-                t.template = getTemplate(op.template)
+                t.databaseTypes = dslExt.databaseTypes
+                t.outputDir = handleFile(dslExt.outputDir, op.outputDir)
+                t.template = getTemplate(dslExt.templates, op.template)
                 t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
             }
         }
@@ -79,23 +77,42 @@ class DslPluginBase implements Plugin<Project> {
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
                 t.velocityProperties = velocityExt.data.get()
-                t.databaseTypes = op.profile
-                t.outFile = getOutput(op.outputFile)
-                t.template = getTemplate(op.template)
+                t.databaseTypes = dslExt.databaseTypes
+                t.outFile = handleFile(dslExt.outputDir, op.outputFile)
+                t.template = getTemplate(dslExt.templates, op.template)
                 t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
             }
         }
     }
 
-    File getTemplate(File template) {
-        return template.absolute ? template : new File(dslExt.templatesDir, template.path)
+    File handleFile(File dslFile, File singleFile) {
+        if (!singleFile) {
+            return dslFile
+        }
+
+        if (singleFile.isFile() || !dslFile) {
+            return singleFile
+        }
+
+        if (dslFile.isFile()) {
+            return dslFile
+        }
+
+        // DSL file is not a file, but a path.
+        // Single file is also not a file or absolute so also a path
+        return new File(dslFile, "$singleFile")
     }
 
-    File getOutput(File output) {
-        return output.absolute ? output : new File(dslExt.outputDir, output.path)
+    File getTemplate(FileCollection collection, File file) {
+        if (file.isFile()) {
+            return file
+        }
+
+        return collection.files.find { it.name == file.name }
     }
 
     FileCollection getOmeXmlFiles(FileCollection omeXmlFiles) {
         return dslExt.omeXmlFiles + omeXmlFiles
     }
+
 }
