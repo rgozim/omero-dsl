@@ -10,15 +10,18 @@ class DslExtension {
 
     final ConfigurableFileCollection omeXmlFiles
 
-    FileCollection templates
+    final ConfigurableFileCollection databaseTypes
+
+    final ConfigurableFileCollection templates
+
+    String databaseType
 
     File outputDir
-
-    File databaseTypes
 
     DslExtension(Project project) {
         this.project = project
         this.omeXmlFiles = project.files()
+        this.databaseTypes = project.files()
         this.templates = project.files()
     }
 
@@ -54,20 +57,32 @@ class DslExtension {
         templates.setFrom(files)
     }
 
+    void databaseTypes(FileCollection files) {
+        setDatabaseTypes(files)
+    }
+
+    void databaseTypes(Object... files) {
+        setDatabaseTypes(files)
+    }
+
+    void setDatabaseTypes(Object... files) {
+        databaseTypes.setFrom(files)
+    }
+
+    void setDatabaseTypes(FileCollection files) {
+        databaseTypes.setFrom(files)
+    }
+
+    void databaseType(String type) {
+        databaseType = type
+    }
+
     void outputDir(Object path) {
         setOutputDir(path)
     }
 
     void setOutputDir(Object path) {
         outputDir = project.file(path)
-    }
-
-    void databaseTypes(Object dir) {
-        setDatabaseTypes(dir)
-    }
-
-    void setDatabaseTypes(Object dir) {
-        databaseTypes = project.file(dir)
     }
 
 }

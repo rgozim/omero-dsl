@@ -1,9 +1,10 @@
 package org.openmicroscopy.dsl.tasks
 
+
 import ome.dsl.velocity.Generator
-import org.apache.commons.lang3.StringUtils
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
@@ -16,92 +17,89 @@ abstract class DslBaseTask extends DefaultTask {
 
     private static final def Log = Logging.getLogger(DslBaseTask)
 
-    @InputFile
-    File databaseTypes
+    @InputFiles
+    FileCollection omeXmlFiles = project.files()
+
+    @InputFiles
+    FileCollection databaseTypes = project.files()
+
+    @Input
+    String databaseType
 
     @InputFile
     File template
-
-    @InputFiles
-    FileCollection omeXmlFiles = project.files()
 
     @Input
     @Optional
     Properties velocityProperties = new Properties()
 
-    abstract protected Generator.Builder createGenerator()
-
     @TaskAction
     void apply() {
-        Log.info("Template : $template.name")
-        Log.info("DatabaseTypesFile : $databaseTypes.name")
-        Log.info("Profile : ${StringUtils.substringBefore(databaseTypes.name, '-')}")
-
         VelocityEngine ve = new VelocityEngine(velocityProperties)
 
         // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
-        builder.profile = profile
-        builder.databaseTypes = databaseTypeProperties
-        builder.omeXmlFiles = allOmeXmlFiles
+        builder.profile = databaseType
         builder.template = template
+        builder.databaseTypes = getDatabaseTypeProperties()
+        builder.omeXmlFiles = getOmeXmlFiles()
         builder.build().call()
     }
 
-    File template(Object file) {
-        return setTemplate(file)
+    abstract protected Generator.Builder createGenerator()
+
+    void omeXmlFiles(Object... paths) {
+        omeXmlFiles = omeXmlFiles + project.files(paths)
     }
 
-    void setTemplate(Object file) {
-        this.template = project.file(file)
+    void setOmeXmlFiles(Object... paths) {
+        omeXmlFiles = project.files(paths)
     }
 
-    FileCollection omeXmlFiles(FileCollection files) {
-        return omeXmlFiles = omeXmlFiles + files
+    void databaseTypes(Object... paths) {
+        this.databaseTypes = databaseTypes + project.files(paths)
     }
 
-    FileCollection omeXmlFiles(Object... files) {
-        return omeXmlFiles(project.files(files))
+    void setDatabaseTypes(Object... paths) {
+        this.databaseTypes = project.files(paths)
     }
 
-    void setOmeXmlFiles(FileCollection files) {
-        omeXmlFiles = files
-    }
-
-    void setOmeXmlFiles(Object... files) {
-        omeXmlFiles = project.files(files)
-    }
-
-    /**
-     * Temp undecided method that reads the profile from the file name of
-     * @code databaseTypes*
-     *
-     * Format example : psql-types.properties
-     *
-     * @return profile portion of filename
-     */
-    String getProfile() {
-        return StringUtils.substringBefore(databaseTypes.name, '-')
+    void databaseType(String type) {
+        this.databaseType = type
     }
 
     Properties getDatabaseTypeProperties() {
         Properties databaseTypeProps = new Properties()
-        databaseTypes.withInputStream { databaseTypeProps.load(it) }
+        File databaseTypeFile = getDatabaseTypes()
+        if (!databaseTypeFile) {
+            throw new GradleException("Can't find ${databaseType}-types.properties")
+        }
+        databaseTypeFile.withInputStream { databaseTypeProps.load(it) }
         return databaseTypeProps
     }
 
-    List<File> getAllOmeXmlFiles() {
-        def directories = omeXmlFiles.findAll {
+    File getDatabaseTypes() {
+        return getFilesInCollection(databaseTypes, "-types.properties").find {
+            it.name == "$databaseType-types.properties"
+        }
+    }
+
+    List<File> getOmeXmlFiles() {
+        return getFilesInCollection(omeXmlFiles, ".ome.xml")
+    }
+
+    List<File> getFilesInCollection(FileCollection collection, String extension) {
+        def directories = collection.findAll {
             it.isDirectory()
         }
 
-        def files = omeXmlFiles.findAll {
-            it.isFile() && it.name.endsWith(".ome.xml")
+        def files = collection.findAll {
+            it.isFile() && it.name.endsWith("$extension")
         }
 
         files = files + directories.collectMany {
-            project.fileTree(dir: it, include: "**/*.ome.xml").files
+            project.fileTree(dir: it, include: "**/*$extension").files
         }
 
         return files
