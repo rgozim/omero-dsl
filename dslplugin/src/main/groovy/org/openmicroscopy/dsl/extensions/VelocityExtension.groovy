@@ -1,9 +1,11 @@
 package org.openmicroscopy.dsl.extensions
 
+import groovy.transform.CompileStatic
 import org.apache.velocity.runtime.RuntimeConstants
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 
+@CompileStatic
 class VelocityExtension {
 
     final Property<Properties> data

@@ -4,8 +4,6 @@ import groovy.transform.CompileStatic
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
-import org.gradle.api.Transformer
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 
@@ -17,7 +15,7 @@ class DslMultiFileTask extends DslBaseTask {
      * Note: also requires setting {@link this.formatOutput}
      */
     @OutputDirectory
-    final DirectoryProperty outputDir = project.objects.directoryProperty()
+    File outputDir
 
     @Nested
     MultiFileGenerator.FileNameFormatter formatOutput
@@ -35,32 +33,22 @@ class DslMultiFileTask extends DslBaseTask {
         }
     }
 
-    void formatOutput(Transformer<String, SemanticType> transformer) {
-        setFormatOutput(transformer)
-    }
-
-    void setFormatOutput(Transformer<String, SemanticType> transformer) {
-        formatOutput = { SemanticType t ->
-            return transformer.transform(t)
-        }
-    }
-
     void outputDir(String dir) {
         setOutputDir(dir)
     }
 
     void setOutputDir(String dir) {
-        this.outputDir.set(project.file(dir))
+        this.outputDir = project.file(dir)
     }
 
     void setOutputDir(File dir) {
-        this.outputDir.set(dir)
+        this.outputDir = dir
     }
 
     @Override
     protected Generator.Builder createGenerator() {
         return new MultiFileGenerator.Builder()
-                .setOutputDir(outputDir.get().asFile)
+                .setOutputDir(outputDir)
                 .setFileNameFormatter(formatOutput)
     }
 

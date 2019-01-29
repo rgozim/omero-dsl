@@ -5,11 +5,9 @@ import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -20,23 +18,23 @@ import org.gradle.api.tasks.TaskProvider
 @CompileStatic
 abstract class DslBaseTask extends DefaultTask {
 
-    private static final def Log = Logging.getLogger(DslBaseTask)
+    private static final Logger Log = Logging.getLogger(DslBaseTask)
 
     public static final String OME_XML_EXTENSION = ".ome.xml"
 
     public static final String DATABASE_TYPES_EXTENSION = "-types.properties"
 
     @InputFiles
-    final ConfigurableFileCollection omeXmlFiles = project.files()
+    FileCollection omeXmlFiles = project.files()
 
     @InputFiles
-    final ConfigurableFileCollection databaseTypes = project.files()
-
-    @Input
-    final Property<String> databaseType = project.objects.property(String)
+    FileCollection databaseTypes = project.files()
 
     @InputFile
-    final RegularFileProperty template = project.objects.fileProperty()
+    File template
+
+    @Input
+    String databaseType
 
     @Input
     @Optional
@@ -44,13 +42,17 @@ abstract class DslBaseTask extends DefaultTask {
 
     @TaskAction
     void apply() {
+        databaseTypes.files.each {
+            Log.info("DBTYPE: $it.name")
+        }
+
         VelocityEngine ve = new VelocityEngine(velocityProperties)
 
         // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
-        builder.profile = databaseType.get()
-        builder.template = template.get().asFile
+        builder.profile = databaseType
+        builder.template = template
         builder.databaseTypes = getDatabaseTypeProperties()
         builder.omeXmlFiles = getOmeXmlFiles()
         builder.build().call()
@@ -63,23 +65,15 @@ abstract class DslBaseTask extends DefaultTask {
     //
 
     void omeXmlFiles(TaskProvider task) {
-        omeXmlFiles.builtBy(task)
+        omeXmlFiles = project.files(task)
     }
 
-    void omeXmlFiles(Iterable<File> iterable) {
-        omeXmlFiles.setFrom(omeXmlFiles + iterable)
+    void omeXmlFiles(FileCollection files) {
+        setOmeXmlFiles(files)
     }
 
-    void omeXmlFiles(Object... paths) {
-        omeXmlFiles.setFrom(omeXmlFiles + project.files(paths))
-    }
-
-    void setOmeXmlFiles(Object... paths) {
-        omeXmlFiles.setFrom(paths)
-    }
-
-    void setOmeXmlFiles(Iterable<File> paths) {
-        omeXmlFiles.setFrom(paths)
+    void setOmeXmlFiles(FileCollection files) {
+        this.omeXmlFiles = files
     }
 
     //
@@ -87,23 +81,15 @@ abstract class DslBaseTask extends DefaultTask {
     //
 
     void databaseTypes(TaskProvider task) {
-        databaseTypes.builtBy(task)
+        databaseTypes = project.files(task)
     }
 
-    void databaseTypes(Iterable<File> iterable) {
-        databaseTypes.setFrom(databaseTypes + iterable)
+    void databaseTypes(FileCollection files) {
+        setDatabaseTypes(files)
     }
 
-    void databaseTypes(Object... paths) {
-        databaseTypes.setFrom(databaseTypes + project.files(paths))
-    }
-
-    void setDatabaseTypes(Iterable<File> iterable) {
-        databaseTypes.setFrom(iterable)
-    }
-
-    void setDatabaseTypes(Object... paths) {
-        databaseTypes.setFrom(paths)
+    void setDatabaseTypes(FileCollection files) {
+        this.databaseTypes = files
     }
 
     //
@@ -115,11 +101,11 @@ abstract class DslBaseTask extends DefaultTask {
     }
 
     void setTemplate(String dir) {
-        this.template.set(project.file(dir))
+        this.template = (project.file(dir))
     }
 
     void setTemplate(File dir) {
-        this.template.set(dir)
+        this.template = dir
     }
 
     //
@@ -131,7 +117,7 @@ abstract class DslBaseTask extends DefaultTask {
     }
 
     void setDatabaseType(String type) {
-        this.databaseType.set(type)
+        this.databaseType = type
     }
 
     private Properties getDatabaseTypeProperties() {

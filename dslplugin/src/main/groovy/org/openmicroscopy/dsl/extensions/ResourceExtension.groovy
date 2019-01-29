@@ -1,16 +1,15 @@
 package org.openmicroscopy.dsl.extensions
 
-
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
-import org.gradle.api.file.RegularFileProperty
 
+@CompileStatic
 class ResourceExtension extends OperationExtension {
 
-    final RegularFileProperty outputFile
+    File outputFile
 
     ResourceExtension(String name, Project project) {
         super(name, project)
-        outputFile = project.objects.fileProperty()
     }
 
     void outputFile(String file) {
@@ -26,7 +25,7 @@ class ResourceExtension extends OperationExtension {
     }
 
     void setOutputFile(File file) {
-        outputFile.set(file)
+        outputFile = file
     }
 }
 

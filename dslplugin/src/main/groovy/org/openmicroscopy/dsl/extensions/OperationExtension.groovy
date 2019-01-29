@@ -1,41 +1,43 @@
 package org.openmicroscopy.dsl.extensions
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.FileCollection
 
+@CompileStatic
 class OperationExtension {
 
     final String name
 
     final Project project
 
-    final RegularFileProperty template
+    File template
 
-    final ConfigurableFileCollection omeXmlFiles
+    FileCollection omeXmlFiles
 
     OperationExtension(String name, Project project) {
         this.name = name
         this.project = project
-        this.template = project.objects.fileProperty()
         this.omeXmlFiles = project.files()
     }
 
-    void omeXmlFiles(Iterable<?> files) {
-        setOmeXmlFiles(files)
-    }
 
     void omeXmlFiles(Object... files) {
         setOmeXmlFiles(files)
     }
 
-    void setOmeXmlFiles(Object... files) {
-        omeXmlFiles.setFrom(files)
+    void omeXmlFiles(FileCollection files) {
+        setOmeXmlFiles(files)
     }
 
-    void setOmeXmlFiles(Iterable<?> files) {
-        omeXmlFiles.setFrom(files)
+    void setOmeXmlFiles(Object... files) {
+        omeXmlFiles = project.files(files)
     }
+
+    void setOmeXmlFiles(FileCollection files) {
+        omeXmlFiles = files
+    }
+
 
     void template(String template) {
         setTemplate(template)
@@ -50,7 +52,7 @@ class OperationExtension {
     }
 
     void setTemplate(File t) {
-        template.set(t)
+        template = t
     }
 
 }

@@ -17,7 +17,7 @@ class DslExtensionTest extends Specification {
 
     def setup() {
         project = ProjectBuilder.builder().withProjectDir(testProjectDir.root).build()
-        dsl = project.extensions.create('dslExt', DslExtension, project)
+        dsl = project.extensions.create('dsl', DslExtension, project)
     }
 
     def "OutputPath is absolute"() {

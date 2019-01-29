@@ -14,18 +14,26 @@ class DslSingleFileTask extends DslBaseTask {
     @OutputFile
     File outFile
 
-    void outFile(Object outFile) {
-        setOutFile(outFile)
-    }
-
-    void setOutFile(Object outFile) {
-        this.outFile = project.file(outFile)
-    }
-
     @Override
     protected Generator.Builder createGenerator() {
         return new SingleFileGenerator.Builder()
                 .setOutFile(outFile)
+    }
+
+    void outFile(String outFile) {
+        setOutFile(outFile)
+    }
+
+    void outFile(File outFile) {
+        setOutFile(outFile)
+    }
+
+    void setOutFile(String outFile) {
+        setOutFile(project.file(outFile))
+    }
+
+    void setOutFile(File outFile) {
+        this.outFile = outFile
     }
 
 }

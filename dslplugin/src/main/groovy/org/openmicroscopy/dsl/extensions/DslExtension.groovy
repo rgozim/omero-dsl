@@ -1,92 +1,85 @@
 package org.openmicroscopy.dsl.extensions
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Property
 
+@CompileStatic
 class DslExtension {
 
     final Project project
 
-    final ConfigurableFileCollection omeXmlFiles
+    FileCollection omeXmlFiles
 
-    final ConfigurableFileCollection databaseTypes
+    FileCollection databaseTypes
 
-    final ConfigurableFileCollection templates
+    FileCollection templates
 
-    final Property<String> databaseType
+    String databaseType
 
-    final DirectoryProperty outputDir
+    File outputDir
 
     DslExtension(Project project) {
         this.project = project
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
-        this.databaseType = project.objects.property(String)
-        this.outputDir = project.objects.directoryProperty()
     }
+
 
     void omeXmlFiles(FileCollection files) {
         setOmeXmlFiles(files)
     }
 
-    void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
-    }
-
     void setOmeXmlFiles(FileCollection files) {
-        omeXmlFiles.setFrom(files)
+        // this.omeXmlFiles.setFrom(files)
+        this.omeXmlFiles = files
     }
 
-    void setOmeXmlFiles(Object... files) {
-        setOmeXmlFiles(project.files(files))
-    }
 
     void templates(FileCollection files) {
         setTemplates(files)
     }
 
-    void templates(Object... files) {
-        setTemplates(files)
-    }
-
-    void setTemplates(Object... files) {
-        setTemplates(project.files(files))
-    }
-
     void setTemplates(FileCollection files) {
-        templates.setFrom(files)
+        // this.templates.setFrom(files)
+        this.templates = files
     }
+
 
     void databaseTypes(FileCollection files) {
         setDatabaseTypes(files)
     }
 
-    void databaseTypes(Object... files) {
-        setDatabaseTypes(files)
-    }
-
-    void setDatabaseTypes(Object... files) {
-        databaseTypes.setFrom(files)
-    }
-
     void setDatabaseTypes(FileCollection files) {
-        databaseTypes.setFrom(files)
+        // this.databaseTypes.setFrom(files)
+        this.databaseTypes = files
     }
+
 
     void databaseType(String type) {
-        databaseType.set(type)
+        this.databaseType = type
     }
 
-    void outputDir(Object path) {
+    void setDatabaseType(String type) {
+        this.databaseType = type
+    }
+
+
+    void outputDir(String path) {
         setOutputDir(path)
     }
 
-    void setOutputDir(Object path) {
-        outputDir.set(project.file(path))
+    void outputDir(File path) {
+        setOutputDir(path)
+    }
+
+    void setOutputDir(String path) {
+        this.outputDir = project.file(path)
+    }
+
+    void setOutputDir(File path) {
+        this.outputDir = path
     }
 
 }
