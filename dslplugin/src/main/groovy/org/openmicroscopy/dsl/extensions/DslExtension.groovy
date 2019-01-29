@@ -2,7 +2,9 @@ package org.openmicroscopy.dsl.extensions
 
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 
 class DslExtension {
 
@@ -14,15 +16,17 @@ class DslExtension {
 
     final ConfigurableFileCollection templates
 
-    String databaseType
+    final Property<String> databaseType
 
-    File outputDir
+    final DirectoryProperty outputDir
 
     DslExtension(Project project) {
         this.project = project
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
+        this.databaseType = project.objects.property(String)
+        this.outputDir = project.objects.directoryProperty()
     }
 
     void omeXmlFiles(FileCollection files) {
@@ -74,7 +78,7 @@ class DslExtension {
     }
 
     void databaseType(String type) {
-        databaseType = type
+        databaseType.set(type)
     }
 
     void outputDir(Object path) {
@@ -82,7 +86,7 @@ class DslExtension {
     }
 
     void setOutputDir(Object path) {
-        outputDir = project.file(path)
+        outputDir.set(project.file(path))
     }
 
 }

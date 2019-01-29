@@ -2,7 +2,9 @@ package org.openmicroscopy.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.ExtensionContainer
 import org.openmicroscopy.dsl.extensions.CodeExtension
 import org.openmicroscopy.dsl.extensions.DslExtension
@@ -12,6 +14,8 @@ import org.openmicroscopy.dsl.factories.CodeFactory
 import org.openmicroscopy.dsl.factories.ResourceFactory
 import org.openmicroscopy.dsl.tasks.DslMultiFileTask
 import org.openmicroscopy.dsl.tasks.DslSingleFileTask
+
+import java.nio.file.Files
 
 class DslPluginBase implements Plugin<Project> {
 
@@ -80,36 +84,35 @@ class DslPluginBase implements Plugin<Project> {
                 t.velocityProperties = velocityExt.data.get()
                 t.databaseType = dslExt.databaseType
                 t.databaseTypes = dslExt.databaseTypes
-                t.outFile = handleFile(dslExt.outputDir, op.outputFile)
+                t.outFile = handleFile(dslExt.outputDir.get().asFile, op.outputFile.get().asFile)
                 t.template = getTemplate(dslExt.templates, op.template)
                 t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
             }
         }
     }
 
+    File handleFile(DirectoryProperty dslFile, DirectoryProperty singleFile) {
+        return handleFile(dslFile.get().asFile, singleFile.get().asFile)
+    }
+
     File handleFile(File dslFile, File singleFile) {
         if (!singleFile) {
             return dslFile
         }
-
-        if (singleFile.isFile() || !dslFile) {
+        if (!dslFile || !Files.isDirectory(singleFile.toPath())) {
             return singleFile
         }
-
-        if (dslFile.isFile()) {
-            return dslFile
-        }
-
-        // DSL file is not a file, but a path.
-        // Single file is also not a file or absolute so also a path
         return new File(dslFile, "$singleFile")
     }
 
+    File getTemplate(FileCollection collection, RegularFileProperty file) {
+        return getTemplate(collection, file.get().asFile)
+    }
+
     File getTemplate(FileCollection collection, File file) {
-        if (file.isFile()) {
+        if (file.isAbsolute() && file.isFile()) {
             return file
         }
-
         return collection.files.find { it.name == file.name }
     }
 

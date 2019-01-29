@@ -1,33 +1,42 @@
 package org.openmicroscopy.dsl.tasks
 
-
+import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
 
+@CompileStatic
 abstract class DslBaseTask extends DefaultTask {
 
     private static final def Log = Logging.getLogger(DslBaseTask)
 
-    @InputFiles
-    FileCollection omeXmlFiles = project.files()
+    public static final String OME_XML_EXTENSION = ".ome.xml"
+
+    public static final String DATABASE_TYPES_EXTENSION = "-types.properties"
 
     @InputFiles
-    FileCollection databaseTypes = project.files()
+    final ConfigurableFileCollection omeXmlFiles = project.files()
+
+    @InputFiles
+    final ConfigurableFileCollection databaseTypes = project.files()
 
     @Input
-    String databaseType
+    final Property<String> databaseType = project.objects.property(String)
 
     @InputFile
-    File template
+    final RegularFileProperty template = project.objects.fileProperty()
 
     @Input
     @Optional
@@ -40,8 +49,8 @@ abstract class DslBaseTask extends DefaultTask {
         // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
-        builder.profile = databaseType
-        builder.template = template
+        builder.profile = databaseType.get()
+        builder.template = template.get().asFile
         builder.databaseTypes = getDatabaseTypeProperties()
         builder.omeXmlFiles = getOmeXmlFiles()
         builder.build().call()
@@ -49,60 +58,114 @@ abstract class DslBaseTask extends DefaultTask {
 
     abstract protected Generator.Builder createGenerator()
 
+    //
+    // omeXmlFiles
+    //
+
+    void omeXmlFiles(TaskProvider task) {
+        omeXmlFiles.builtBy(task)
+    }
+
+    void omeXmlFiles(Iterable<File> iterable) {
+        omeXmlFiles.setFrom(omeXmlFiles + iterable)
+    }
+
     void omeXmlFiles(Object... paths) {
-        omeXmlFiles = omeXmlFiles + project.files(paths)
+        omeXmlFiles.setFrom(omeXmlFiles + project.files(paths))
     }
 
     void setOmeXmlFiles(Object... paths) {
-        omeXmlFiles = project.files(paths)
+        omeXmlFiles.setFrom(paths)
+    }
+
+    void setOmeXmlFiles(Iterable<File> paths) {
+        omeXmlFiles.setFrom(paths)
+    }
+
+    //
+    // databaseTypes
+    //
+
+    void databaseTypes(TaskProvider task) {
+        databaseTypes.builtBy(task)
+    }
+
+    void databaseTypes(Iterable<File> iterable) {
+        databaseTypes.setFrom(databaseTypes + iterable)
     }
 
     void databaseTypes(Object... paths) {
-        this.databaseTypes = databaseTypes + project.files(paths)
+        databaseTypes.setFrom(databaseTypes + project.files(paths))
+    }
+
+    void setDatabaseTypes(Iterable<File> iterable) {
+        databaseTypes.setFrom(iterable)
     }
 
     void setDatabaseTypes(Object... paths) {
-        this.databaseTypes = project.files(paths)
+        databaseTypes.setFrom(paths)
     }
+
+    //
+    // template
+    //
+
+    void template(String dir) {
+        setTemplate(dir)
+    }
+
+    void setTemplate(String dir) {
+        this.template.set(project.file(dir))
+    }
+
+    void setTemplate(File dir) {
+        this.template.set(dir)
+    }
+
+    //
+    // databaseType
+    //
 
     void databaseType(String type) {
-        this.databaseType = type
+        setDatabaseType(type)
     }
 
-    Properties getDatabaseTypeProperties() {
+    void setDatabaseType(String type) {
+        this.databaseType.set(type)
+    }
+
+    private Properties getDatabaseTypeProperties() {
         Properties databaseTypeProps = new Properties()
         File databaseTypeFile = getDatabaseTypes()
         if (!databaseTypeFile) {
-            throw new GradleException("Can't find ${databaseType}-types.properties")
+            throw new GradleException("Can't find ${databaseType}${DATABASE_TYPES_EXTENSION}")
         }
         databaseTypeFile.withInputStream { databaseTypeProps.load(it) }
         return databaseTypeProps
     }
 
-    File getDatabaseTypes() {
-        return getFilesInCollection(databaseTypes, "-types.properties").find {
-            it.name == "$databaseType-types.properties"
+    private File getDatabaseTypes() {
+        return getFilesInCollection(databaseTypes, DATABASE_TYPES_EXTENSION).find {
+            it.name == "${databaseType}${DATABASE_TYPES_EXTENSION}"
         }
     }
 
-    List<File> getOmeXmlFiles() {
-        return getFilesInCollection(omeXmlFiles, ".ome.xml")
+    private Collection<File> getOmeXmlFiles() {
+        return getFilesInCollection(omeXmlFiles, OME_XML_EXTENSION)
     }
 
-    List<File> getFilesInCollection(FileCollection collection, String extension) {
-        def directories = collection.findAll {
-            it.isDirectory()
+    private Collection<File> getFilesInCollection(FileCollection collection, String extension) {
+        def directories = collection.findAll { File file ->
+            file.isDirectory()
         }
 
-        def files = collection.findAll {
-            it.isFile() && it.name.endsWith("$extension")
+        def files = collection.findAll { File file ->
+            file.isFile() && file.name.endsWith("$extension")
         }
 
-        files = files + directories.collectMany {
+        return files + directories.collectMany {
             project.fileTree(dir: it, include: "**/*$extension").files
         }
-
-        return files
     }
 
 }
