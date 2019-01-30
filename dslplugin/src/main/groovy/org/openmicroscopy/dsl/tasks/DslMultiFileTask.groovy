@@ -20,11 +20,11 @@ class DslMultiFileTask extends DslBaseTask {
     @Nested
     MultiFileGenerator.FileNameFormatter formatOutput
 
-    void formatOutput(Closure<String> closure) {
+    void formatOutput(Closure closure) {
         setFormatOutput(closure)
     }
 
-    void setFormatOutput(Closure<String> closure) {
+    void setFormatOutput(Closure closure) {
         formatOutput = new MultiFileGenerator.FileNameFormatter() {
             @Override
             String format(SemanticType t) {

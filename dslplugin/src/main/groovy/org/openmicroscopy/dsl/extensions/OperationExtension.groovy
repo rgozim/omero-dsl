@@ -31,11 +31,11 @@ class OperationExtension {
     }
 
     void setOmeXmlFiles(Object... files) {
-        omeXmlFiles = project.files(files)
+        this.omeXmlFiles = project.files(files)
     }
 
     void setOmeXmlFiles(FileCollection files) {
-        omeXmlFiles = files
+        this.omeXmlFiles = files
     }
 
 
@@ -52,7 +52,7 @@ class OperationExtension {
     }
 
     void setTemplate(File t) {
-        template = t
+        this.template = t
     }
 
 }

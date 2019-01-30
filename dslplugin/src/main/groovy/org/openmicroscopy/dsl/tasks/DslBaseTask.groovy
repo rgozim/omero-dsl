@@ -96,16 +96,13 @@ abstract class DslBaseTask extends DefaultTask {
     // template
     //
 
-    void template(String dir) {
+
+    void template(Object dir) {
         setTemplate(dir)
     }
 
-    void setTemplate(String dir) {
-        this.template = (project.file(dir))
-    }
-
-    void setTemplate(File dir) {
-        this.template = dir
+    void setTemplate(Object dir) {
+        this.template = project.file(dir)
     }
 
     //

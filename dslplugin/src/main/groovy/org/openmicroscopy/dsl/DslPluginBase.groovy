@@ -3,7 +3,7 @@ package org.openmicroscopy.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.plugins.ExtensionAware
 import org.openmicroscopy.dsl.extensions.CodeExtension
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.ResourceExtension
@@ -15,80 +15,69 @@ import org.openmicroscopy.dsl.tasks.DslSingleFileTask
 
 class DslPluginBase implements Plugin<Project> {
 
-    static final String GROUP = "omero-dsl"
-    static final String TASK_PREFIX = "generate"
+    public static final String GROUP = "omero-dsl"
 
-    DslExtension dsl
-
-    VelocityExtension velocityExt
+    private static final String TASK_PREFIX = "generate"
 
     @Override
     void apply(Project project) {
-        init(project)
+        DslExtension dsl = createDslExtension(project)
+        configure(project, dsl)
     }
 
-    void init(Project project) {
-        this.init(project, project.extensions)
-    }
+    @SuppressWarnings("GrMethodMayBeStatic")
+    DslExtension createDslExtension(Project project) {
+        def code = project.container(CodeExtension, new CodeFactory(project))
+        def resource = project.container(ResourceExtension, new ResourceFactory(project))
 
-    void init(Project project, ExtensionContainer baseExt) {
-        setupDsl(project, baseExt)
-
-        // Default configure dsl org.openmicroscopy.dsl.tasks
-        configureCodeTasks(project)
-        configureResourceTasks(project)
-    }
-
-    /**
-     * Sets up the plugin language block
-     * @param project
-     */
-    def setupDsl(Project project, ExtensionContainer extensions) {
         // Create the dsl extension
-        dsl = extensions.create('dsl', DslExtension, project)
-
-        // Add NamedDomainObjectContainer for code and resource generators
-        dsl.extensions.add("code", project.container(CodeExtension, new CodeFactory(project)))
-        dsl.extensions.add("resource", project.container(ResourceExtension, new ResourceFactory(project)))
-
-        // Create velocity inner extension for dsl
-        velocityExt = dsl.extensions.create('velocity', VelocityExtension, project)
+        return project.extensions.create('dsl', DslExtension, project, code, resource)
     }
 
-    def configureCodeTasks(Project project) {
+    static void configure(Project project, DslExtension dsl) {
+        VelocityExtension velocity = createVelocityExtension(project, dsl)
+        configureCodeTasks(project, dsl, velocity)
+        configureResourceTasks(project, dsl, velocity)
+    }
+
+    static VelocityExtension createVelocityExtension(Project project, DslExtension dsl) {
+        return ((ExtensionAware) dsl).extensions.create('velocity', VelocityExtension, project)
+    }
+
+    static void configureCodeTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
         dsl.code.all { CodeExtension op ->
             String taskName = TASK_PREFIX + op.name.capitalize()
             project.tasks.register(taskName, DslMultiFileTask) { t ->
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
-                t.velocityProperties = velocityExt.data.get()
+                t.velocityProperties = velocity.data.get()
                 t.formatOutput = op.formatOutput
                 t.databaseType = dsl.databaseType
                 t.databaseTypes = dsl.databaseTypes
-                t.outputDir = handleFile(dsl.outputDir, op.outputDir)
-                t.template = project.file(op.template) //getTemplate(dsl.templates, op.template)
-                t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
+                t.outputDir = getOutputDir(dsl.outputDir, op.outputDir)
+                t.template = getFileInCollection(dsl.templates, op.template)
+                t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
             }
         }
     }
 
-    def configureResourceTasks(Project project) {
+    static void configureResourceTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
         dsl.resource.all { ResourceExtension op ->
             String taskName = TASK_PREFIX + op.name.capitalize()
             project.tasks.register(taskName, DslSingleFileTask) { t ->
                 t.group = GROUP
                 t.description = "parses ome.xml files and compiles velocity template"
-                t.velocityProperties = velocityExt.data.get()
+                t.velocityProperties = velocity.data.get()
                 t.databaseType = dsl.databaseType
                 t.databaseTypes = dsl.databaseTypes
-                t.outFile = handleFile(dsl.outputDir, op.outputFile)
-                t.template = project.file(op.template) //getTemplate(dsl.templates, op.template)
-                t.omeXmlFiles = getOmeXmlFiles(op.omeXmlFiles)
+                t.outFile = getOutputDir(dsl.outputDir, op.outputFile)
+                t.template = getFileInCollection(dsl.templates, op.template)
+                t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
             }
         }
     }
 
-    File handleFile(File dslFile, File singleFile) {
+    static File getOutputDir(File dslFile, File singleFile) {
         if (!singleFile) {
             return dslFile
         }
@@ -103,15 +92,11 @@ class DslPluginBase implements Plugin<Project> {
         return new File(dslFile, "$singleFile")
     }
 
-    File getTemplate(FileCollection collection, File file) {
+    static File getFileInCollection(FileCollection collection, File file) {
         if (file.isAbsolute() && file.isFile()) {
             return file
         }
         return collection.getFiles().find { it.name == file.name }
-    }
-
-    FileCollection getOmeXmlFiles(FileCollection omeXmlFiles) {
-        return dsl.omeXmlFiles + omeXmlFiles
     }
 
 }
