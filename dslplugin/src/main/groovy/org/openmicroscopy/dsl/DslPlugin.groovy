@@ -37,13 +37,16 @@ class DslPlugin implements Plugin<Project> {
     static void configureForJavaPlugin(Project project, DslExtension dsl) {
         project.plugins.withType(JavaPlugin) { JavaPlugin java ->
             // .ome.xml files
-            dsl.omeXmlFiles = project.fileTree(dir: "src/main/resources/mappings", include: "**/*.ome.xml")
+            dsl.omeXmlFiles = project.fileTree(dir: "src/main/resources/mappings",
+                    include: FileTypes.PATTERN_OME_XML)
 
             // Default template dir (src/
-            dsl.databaseTypes = project.fileTree(dir: "src/main/resources/properties", include: "**/*.properties")
+            dsl.databaseTypes = project.fileTree(dir: "src/main/resources/properties",
+                    include: FileTypes.PATTERN_DB_TYPE)
 
             // Default template dir (src/
-            dsl.templates = project.fileTree(dir: "src/main/resources/templates", include: "**/*.vm")
+            dsl.templates = project.fileTree(dir: "src/main/resources/templates",
+                    include: FileTypes.PATTERN_TEMPLATE)
 
             // Configure default outputDir
             JavaPluginConvention javaConvention =
