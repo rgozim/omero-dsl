@@ -4,23 +4,11 @@ task sourceJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-task uberJar(type: Jar, dependsOn: configurations.runtimeClasspath) {
-    archiveAppendix.set "uber"
-    from sourceSets.main.output
-    from configurations.runtimeClasspath.
-            findAll { it.name.endsWith('jar') }.
-            collect { zipTree(it) }
-}
-
 publishing {
     publications {
         dslPlugin(MavenPublication) {
             from components.java
             artifact sourceJar
-        }
-
-        uberJarDslPlugin(MavenPublication) {
-            artifact uberJar
         }
     }
 }
