@@ -5,6 +5,8 @@ import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -14,20 +16,19 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.util.PatternSet
+import org.openmicroscopy.dsl.FileTypes
 
 @CompileStatic
 abstract class DslBaseTask extends DefaultTask {
 
     private static final Logger Log = Logging.getLogger(DslBaseTask)
 
-    public static final String OME_XML_EXTENSION = ".ome.xml"
-
-    public static final String DATABASE_TYPES_EXTENSION = "-types.properties"
-
     @InputFiles
     FileCollection omeXmlFiles = project.files()
 
     @InputFiles
+    @Optional
     FileCollection databaseTypes = project.files()
 
     @InputFile
@@ -42,20 +43,24 @@ abstract class DslBaseTask extends DefaultTask {
 
     @TaskAction
     void apply() {
-        databaseTypes.files.each {
-            Log.info("DBTYPE: $it.name")
+        omeXmlFiles.asFileTree.files.each {
+            Log.info("OMEXML $it")
         }
 
-        VelocityEngine ve = new VelocityEngine(velocityProperties)
+        databaseTypes.asFileTree.files.each {
+            Log.info("DBTYPEFILE $it")
+        }
 
-        // Build our file generator
-        def builder = createGenerator()
-        builder.velocityEngine = ve
-        builder.profile = databaseType
-        builder.template = template
-        builder.databaseTypes = getDatabaseTypeProperties()
-        builder.omeXmlFiles = getOmeXmlFiles()
-        builder.build().call()
+//        VelocityEngine ve = new VelocityEngine(velocityProperties)
+
+//        // Build our file generator
+//        def builder = createGenerator()
+//        builder.velocityEngine = ve
+//        builder.profile = databaseType
+//        builder.template = template
+//        builder.databaseTypes = _getDatabaseTypeProperties()
+//        builder.omeXmlFiles = _getOmeXmlFiles()
+//        builder.build().call()
     }
 
     abstract protected Generator.Builder createGenerator()
@@ -64,33 +69,42 @@ abstract class DslBaseTask extends DefaultTask {
     // omeXmlFiles
     //
 
-    void omeXmlFiles(TaskProvider task) {
-        omeXmlFiles = project.files(task)
-    }
-
-    void omeXmlFiles(FileCollection files) {
-        setOmeXmlFiles(files)
-    }
-
-    void setOmeXmlFiles(FileCollection files) {
-        this.omeXmlFiles = files
-    }
+//    void omeXmlFiles(Iterable<?> files) {
+//        setOmeXmlFiles(files)
+//    }
+//
+//    void omeXmlFiles(Object... files) {
+//        setOmeXmlFiles(files)
+//    }
+//
+//    void setOmeXmlFiles(Iterable<?> files) {
+//        this.omeXmlFiles.setFrom(files) //= project.files(files)
+//    }
+//
+//    void setOmeXmlFiles(Object... files) {
+//        this.omeXmlFiles.setFrom(files)
+//    }
 
     //
     // databaseTypes
     //
 
-    void databaseTypes(TaskProvider task) {
-        databaseTypes = project.files(task)
-    }
 
-    void databaseTypes(FileCollection files) {
-        setDatabaseTypes(files)
-    }
-
-    void setDatabaseTypes(FileCollection files) {
-        this.databaseTypes = files
-    }
+//    void databaseTypes(Iterable<?> files) {
+//        setDatabaseTypes(files)
+//    }
+//
+//    void databaseTypes(Object... files) {
+//        setDatabaseTypes(files)
+//    }
+//
+//    void setDatabaseTypes(Iterable<?> files) {
+//        this.databaseTypes.setFrom(files)
+//    }
+//
+//    void setDatabaseTypes(Object... files) {
+//        this.databaseTypes.setFrom(files)
+//    }
 
     //
     // template
@@ -117,37 +131,38 @@ abstract class DslBaseTask extends DefaultTask {
         this.databaseType = type
     }
 
-    private Properties getDatabaseTypeProperties() {
+    private Properties _getDatabaseTypeProperties() {
         Properties databaseTypeProps = new Properties()
-        File databaseTypeFile = getDatabaseTypes()
+        File databaseTypeFile = _getDatabaseTypesFile()
         if (!databaseTypeFile) {
-            throw new GradleException("Can't find ${databaseType}${DATABASE_TYPES_EXTENSION}")
+            throw new GradleException("Can't find ${databaseType}-type.${FileTypes.EXTENSION_DB_TYPE}")
         }
         databaseTypeFile.withInputStream { databaseTypeProps.load(it) }
         return databaseTypeProps
     }
 
-    private File getDatabaseTypes() {
-        return getFilesInCollection(databaseTypes, DATABASE_TYPES_EXTENSION).find {
-            it.name == "${databaseType}${DATABASE_TYPES_EXTENSION}"
+    private File _getDatabaseTypesFile() {
+        def dbtypefiles = _getFilesInCollection(databaseTypes, "properties")
+        return dbtypefiles.find {
+            it.name == "${databaseType}-type.${FileTypes.EXTENSION_DB_TYPE}"
         }
     }
 
-    private Collection<File> getOmeXmlFiles() {
-        return getFilesInCollection(omeXmlFiles, OME_XML_EXTENSION)
+    private Collection<File> _getOmeXmlFiles() {
+        return _getFilesInCollection(omeXmlFiles, FileTypes.EXTENSION_OME_XML)
     }
 
-    private Collection<File> getFilesInCollection(FileCollection collection, String extension) {
+    private static Collection<File> _getFilesInCollection(FileCollection collection, String extension) {
         def directories = collection.findAll { File file ->
             file.isDirectory()
         }
 
         def files = collection.findAll { File file ->
-            file.isFile() && file.name.endsWith("$extension")
+            file.isFile() && file.name.matches("$extension")
         }
 
         return files + directories.collectMany {
-            project.fileTree(dir: it, include: "**/*$extension").files
+            project.fileTree(dir: it, include: "**/*.$extension").files
         }
     }
 
