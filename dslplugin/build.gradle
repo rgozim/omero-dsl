@@ -6,12 +6,14 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
     // We need this for the sax reader and type processor
-    compile project(':dsl')
+    compile project(":dsl")
+
     testImplementation('org.spockframework:spock-core:1.2-groovy-2.5') {
         exclude module: 'groovy-all'
     }
@@ -29,24 +31,5 @@ gradlePlugin {
     }
 }
 
-task uberJar(type: Jar) {
-    from sourceSets.main.output
-    from configurations.runtimeClasspath.
-            findAll { it.name.endsWith('jar') }.
-            collect { zipTree(it) }
-}
 
-task sourceJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            //artifact uberJar
-            artifact sourceJar
-        }
-    }
-}
+apply from: "publish.gradle"
