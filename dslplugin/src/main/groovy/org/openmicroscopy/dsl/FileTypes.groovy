@@ -10,7 +10,7 @@ class FileTypes {
 
     static final String PATTERN_OME_XML = "**/*.$EXTENSION_OME_XML"
 
-    static final String PATTERN_DB_TYPE = "**/*-type.$EXTENSION_DB_TYPE"
+    static final String PATTERN_DB_TYPE = "**/*-type*.$EXTENSION_DB_TYPE"
 
     static final String PATTERN_TEMPLATE = "**/*.$EXTENSION_TEMPLATE"
 
