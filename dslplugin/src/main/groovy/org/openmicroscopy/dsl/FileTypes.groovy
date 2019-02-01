@@ -1,5 +1,8 @@
 package org.openmicroscopy.dsl
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class FileTypes {
 
     static final String EXTENSION_OME_XML = "ome.xml"

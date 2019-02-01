@@ -8,7 +8,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 
 @CompileStatic
-class DslMultiFileTask extends DslBaseTask {
+class FilesGeneratorTask extends GeneratorBaseTask {
 
     /**
      * Set this when you want to generate multiple files

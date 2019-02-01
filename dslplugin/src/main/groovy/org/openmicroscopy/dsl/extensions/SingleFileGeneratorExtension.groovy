@@ -4,11 +4,11 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
 @CompileStatic
-class ResourceExtension extends OperationExtension {
+class SingleFileGeneratorExtension extends OperationExtension {
 
     File outputFile
 
-    ResourceExtension(String name, Project project) {
+    SingleFileGeneratorExtension(String name, Project project) {
         super(name, project)
     }
 

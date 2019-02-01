@@ -24,7 +24,7 @@ class ResourceLoader {
         if (GradleVersion.current() >= GradleVersion.version('4.8')) {
             def url = IOUtils.getResource("/" + resFile) // getResource(project, resFile)
             if (!url) {
-                throw new GradleException("can't find resource file ${resFile}")
+                throw new GradleException("can't find file file ${resFile}")
             }
             return project.resources.text.fromUri(url.toURI()).asFile()
         } else {

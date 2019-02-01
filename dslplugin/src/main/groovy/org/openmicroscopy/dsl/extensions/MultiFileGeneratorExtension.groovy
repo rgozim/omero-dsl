@@ -4,13 +4,13 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
 @CompileStatic
-class CodeExtension extends OperationExtension {
+class MultiFileGeneratorExtension extends OperationExtension {
 
     File outputDir
 
     Closure<String> formatOutput
 
-    CodeExtension(String name, Project project) {
+    MultiFileGeneratorExtension(String name, Project project) {
         super(name, project)
     }
 

@@ -11,7 +11,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
-import org.openmicroscopy.dsl.tasks.DslBaseTask
+import org.openmicroscopy.dsl.tasks.GeneratorBaseTask
 
 @CompileStatic
 class DslPlugin implements Plugin<Project> {
@@ -62,8 +62,8 @@ class DslPlugin implements Plugin<Project> {
             project.tasks.named("compileJava").configure(new Action<Task>() {
                 @Override
                 void execute(Task t) {
-                    t.dependsOn = project.tasks.withType(DslBaseTask).findAll {
-                        DslBaseTask task -> task.group == DslPluginBase.GROUP
+                    t.dependsOn = project.tasks.withType(GeneratorBaseTask).findAll {
+                        GeneratorBaseTask task -> task.group == DslPluginBase.GROUP
                     }
                 }
             })
@@ -75,10 +75,10 @@ class DslPlugin implements Plugin<Project> {
 
 // Set defaults for all dsl extensions
 // NB: not sure about this block
-/*project.dsl.code.all { CodeExtension resExt ->
+/*project.dsl.files.all { MultiFileGeneratorExtension resExt ->
     resExt.outputDir = "java"
 }
 
-project.dsl.resource.all { ResourceExtension resExt ->
+project.dsl.file.all { SingleFileGeneratorExtension resExt ->
     resExt.outputFile = "resources"
 }*/

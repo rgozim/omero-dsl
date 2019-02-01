@@ -5,15 +5,16 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.openmicroscopy.dsl.extensions.specs.DslSpec
 
 @CompileStatic
-class DslExtension {
+class DslExtension implements DslSpec {
 
     final Project project
 
-    final NamedDomainObjectContainer<CodeExtension> code
+    final NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile
 
-    final NamedDomainObjectContainer<ResourceExtension> resource
+    final NamedDomainObjectContainer<SingleFileGeneratorExtension> singleFile
 
     FileCollection omeXmlFiles
 
@@ -21,26 +22,27 @@ class DslExtension {
 
     FileCollection templates
 
-    String databaseType
-
     File outputDir
 
-    DslExtension(Project project, NamedDomainObjectContainer<CodeExtension> code,
-                 NamedDomainObjectContainer<ResourceExtension> resource) {
+    String database
+
+    DslExtension(Project project,
+                 NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile,
+                 NamedDomainObjectContainer<SingleFileGeneratorExtension> singleFile) {
         this.project = project
-        this.code = code
-        this.resource = resource
+        this.multiFile = multiFile
+        this.singleFile = singleFile
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
     }
 
-    void code(Action<? super NamedDomainObjectContainer<CodeExtension>> action) {
-        action.execute(code)
+    void multiFile(Action<? super NamedDomainObjectContainer<MultiFileGeneratorExtension>> action) {
+        action.execute(multiFile)
     }
 
-    void resource(Action<? super NamedDomainObjectContainer<ResourceExtension>> action) {
-        action.execute(resource)
+    void singleFile(Action<? super NamedDomainObjectContainer<SingleFileGeneratorExtension>> action) {
+        action.execute(singleFile)
     }
 
     void omeXmlFiles(FileCollection files) {
@@ -48,7 +50,6 @@ class DslExtension {
     }
 
     void setOmeXmlFiles(FileCollection files) {
-        // this.omeXmlFiles.setFrom(files)
         this.omeXmlFiles = files
     }
 
@@ -57,7 +58,6 @@ class DslExtension {
     }
 
     void setTemplates(FileCollection files) {
-        // this.templates.setFrom(files)
         this.templates = files
     }
 
@@ -66,32 +66,15 @@ class DslExtension {
     }
 
     void setDatabaseTypes(FileCollection files) {
-        // this.databaseTypes.setFrom(files)
         this.databaseTypes = files
     }
 
-    void databaseType(String type) {
-        setDatabaseType(type)
+    void outputDir(Object dir) {
+        setOutputDir(dir)
     }
 
-    void setDatabaseType(String type) {
-        this.databaseType = type
-    }
-
-    void outputDir(String path) {
-        setOutputDir(path)
-    }
-
-    void outputDir(File path) {
-        setOutputDir(path)
-    }
-
-    void setOutputDir(String path) {
-        this.outputDir = project.file(path)
-    }
-
-    void setOutputDir(File path) {
-        this.outputDir = path
+    void setOutputDir(Object dir) {
+        this.outputDir = project.file(dir)
     }
 
 }

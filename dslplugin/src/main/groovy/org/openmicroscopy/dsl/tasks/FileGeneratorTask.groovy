@@ -6,7 +6,7 @@ import ome.dsl.velocity.SingleFileGenerator
 import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
-class DslSingleFileTask extends DslBaseTask {
+class FileGeneratorTask extends GeneratorBaseTask {
 
     /**
      * Set this when you only want to generate a single file

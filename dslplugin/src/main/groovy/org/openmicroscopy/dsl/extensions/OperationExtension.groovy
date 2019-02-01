@@ -3,17 +3,18 @@ package org.openmicroscopy.dsl.extensions
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.openmicroscopy.dsl.extensions.specs.OperationSpec
 
 @CompileStatic
-class OperationExtension {
+class OperationExtension implements OperationSpec {
 
     final String name
 
     final Project project
 
-    File template
-
     FileCollection omeXmlFiles
+
+    File template
 
     OperationExtension(String name, Project project) {
         this.name = name
@@ -21,23 +22,13 @@ class OperationExtension {
         this.omeXmlFiles = project.files()
     }
 
-
     void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
-    }
-
-    void omeXmlFiles(FileCollection files) {
         setOmeXmlFiles(files)
     }
 
     void setOmeXmlFiles(Object... files) {
         this.omeXmlFiles = project.files(files)
     }
-
-    void setOmeXmlFiles(FileCollection files) {
-        this.omeXmlFiles = files
-    }
-
 
     void template(String template) {
         setTemplate(template)
