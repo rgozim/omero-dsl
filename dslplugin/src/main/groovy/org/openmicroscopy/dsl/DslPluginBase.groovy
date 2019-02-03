@@ -14,6 +14,7 @@ import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
+import org.openmicroscopy.dsl.extensions.specs.DslSpec
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
@@ -46,16 +47,16 @@ class DslPluginBase implements Plugin<Project> {
                 multiFileContainer, singleFileContainer)
     }
 
-    static void configure(Project project, DslExtension dsl, VelocityExtension velocity) {
+    static void configure(Project project, DslSpec dsl, VelocityExtension velocity) {
         configureCodeTasks(project, dsl, velocity)
         configureResourceTasks(project, dsl, velocity)
     }
 
-    static VelocityExtension createVelocityExtension(Project project, DslExtension dsl) {
+    static VelocityExtension createVelocityExtension(Project project, DslSpec dsl) {
         return ((ExtensionAware) dsl).extensions.create(EXTENSION_NAME_VELOCITY, VelocityExtension, project)
     }
 
-    static void configureCodeTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
+    static void configureCodeTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
         dsl.multiFile.configureEach { MultiFileGeneratorExtension op ->
             String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
@@ -73,7 +74,7 @@ class DslPluginBase implements Plugin<Project> {
         }
     }
 
-    static void configureResourceTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
+    static void configureResourceTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
         dsl.singleFile.configureEach { SingleFileGeneratorExtension op ->
             String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
