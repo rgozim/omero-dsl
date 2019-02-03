@@ -14,8 +14,8 @@ import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
 import org.openmicroscopy.dsl.extensions.specs.DslSpec
-import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
+import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 
@@ -23,13 +23,15 @@ import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 class DslPluginBase implements Plugin<Project> {
 
     public static final String GROUP = "omero-dsl"
-
-    private static final String TASK_PREFIX = "generate"
+    public static final String EXTENSION_NAME_DSL = "dsl"
+    public static final String EXTENSION_NAME_VELOCITY = "velocity"
+    public static final String TASK_PREFIX_GENERATE = "generate"
 
     @Override
     void apply(Project project) {
         DslExtension dsl = createDslExtension(project)
-        configure(project, dsl)
+        VelocityExtension velocity = createVelocityExtension(project, dsl)
+        configure(project, dsl, velocity)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -38,23 +40,21 @@ class DslPluginBase implements Plugin<Project> {
         def resource = project.container(SingleFileGeneratorExtension, new SingleFileGeneratorFactory(project))
 
         // Create the dsl extension
-        return project.extensions.create('dsl', DslExtension, project, code, resource)
+        return project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project, code, resource)
     }
 
-    static void configure(Project project, DslSpec dsl) {
-        VelocityExtension velocity = createVelocityExtension(project, dsl)
-
+    static void configure(Project project, DslSpec dsl, VelocityExtension velocity) {
         configureCodeTasks(project, dsl, velocity)
         configureResourceTasks(project, dsl, velocity)
     }
 
     static VelocityExtension createVelocityExtension(Project project, DslSpec dsl) {
-        return ((ExtensionAware) dsl).extensions.create('velocity', VelocityExtension, project)
+        return ((ExtensionAware) dsl).extensions.create(EXTENSION_NAME_VELOCITY, VelocityExtension, project)
     }
 
     static void configureCodeTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
         dsl.multiFile.all { MultiFileGeneratorExtension op ->
-            String taskName = TASK_PREFIX + op.name.capitalize() + dsl.database.capitalize()
+            String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
                 @Override
                 void execute(FilesGeneratorTask t) {
@@ -72,7 +72,7 @@ class DslPluginBase implements Plugin<Project> {
 
     static void configureResourceTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
         dsl.singleFile.all { SingleFileGeneratorExtension op ->
-            String taskName = TASK_PREFIX + op.name.capitalize() + dsl.database.capitalize()
+            String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
                 @Override
                 void execute(FileGeneratorTask t) {
