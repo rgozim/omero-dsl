@@ -10,7 +10,7 @@ import org.openmicroscopy.dsl.extensions.specs.DslSpec
 @CompileStatic
 class DslExtension implements DslSpec {
 
-    final Project project
+    private final Project project
 
     final NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile
 
@@ -38,11 +38,11 @@ class DslExtension implements DslSpec {
     }
 
     void multiFile(Action<? super NamedDomainObjectContainer<MultiFileGeneratorExtension>> action) {
-        action.execute(multiFile)
+        action.execute(this.multiFile)
     }
 
     void singleFile(Action<? super NamedDomainObjectContainer<SingleFileGeneratorExtension>> action) {
-        action.execute(singleFile)
+        action.execute(this.singleFile)
     }
 
     void omeXmlFiles(FileCollection files) {
@@ -53,14 +53,6 @@ class DslExtension implements DslSpec {
         this.omeXmlFiles = files
     }
 
-    void templates(FileCollection files) {
-        setTemplates(files)
-    }
-
-    void setTemplates(FileCollection files) {
-        this.templates = files
-    }
-
     void databaseTypes(FileCollection files) {
         setDatabaseTypes(files)
     }
@@ -69,12 +61,24 @@ class DslExtension implements DslSpec {
         this.databaseTypes = files
     }
 
+    void templates(FileCollection files) {
+        setTemplates(files)
+    }
+
+    void setTemplates(FileCollection files) {
+        this.templates = files
+    }
+
     void outputDir(Object dir) {
         setOutputDir(dir)
     }
 
     void setOutputDir(Object dir) {
         this.outputDir = project.file(dir)
+    }
+
+    void database(String db) {
+        this.database = db
     }
 
 }

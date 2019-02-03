@@ -8,7 +8,7 @@ class MultiFileGeneratorExtension extends OperationExtension {
 
     File outputDir
 
-    Closure<String> formatOutput
+    Closure formatOutput
 
     MultiFileGeneratorExtension(String name, Project project) {
         super(name, project)
@@ -30,11 +30,11 @@ class MultiFileGeneratorExtension extends OperationExtension {
         this.outputDir = dir
     }
 
-    void formatOutput(Closure<String> closure) {
+    void formatOutput(Closure closure) {
         setFormatOutput(closure)
     }
 
-    void setFormatOutput(Closure<String> closure) {
+    void setFormatOutput(Closure closure) {
         this.formatOutput = closure
     }
 

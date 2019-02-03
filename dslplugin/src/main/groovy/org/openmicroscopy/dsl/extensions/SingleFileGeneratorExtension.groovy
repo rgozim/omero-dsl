@@ -27,5 +27,6 @@ class SingleFileGeneratorExtension extends OperationExtension {
     void setOutputFile(File file) {
         outputFile = file
     }
+
 }
 

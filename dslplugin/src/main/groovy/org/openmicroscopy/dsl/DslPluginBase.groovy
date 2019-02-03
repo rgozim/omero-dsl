@@ -1,31 +1,32 @@
 package org.openmicroscopy.dsl
 
-import groovy.transform.CompileStatic
-import org.apache.commons.io.FilenameUtils
+
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.util.PatternSet
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
-import org.openmicroscopy.dsl.extensions.specs.DslSpec
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 
-@CompileStatic
 class DslPluginBase implements Plugin<Project> {
 
     static final String GROUP = "omero-dsl"
     static final String EXTENSION_NAME_DSL = "dsl"
     static final String EXTENSION_NAME_VELOCITY = "velocity"
     static final String TASK_PREFIX_GENERATE = "generate"
+
+    private static final Logger Log = Logging.getLogger(DslPluginBase)
 
     @Override
     void apply(Project project) {
@@ -36,24 +37,26 @@ class DslPluginBase implements Plugin<Project> {
 
     @SuppressWarnings("GrMethodMayBeStatic")
     DslExtension createDslExtension(Project project) {
-        def code = project.container(MultiFileGeneratorExtension, new MultiFileGeneratorFactory(project))
-        def resource = project.container(SingleFileGeneratorExtension, new SingleFileGeneratorFactory(project))
+        def multiFileContainer =
+                project.container(MultiFileGeneratorExtension, new MultiFileGeneratorFactory(project))
+        def singleFileContainer =
+                project.container(SingleFileGeneratorExtension, new SingleFileGeneratorFactory(project))
 
-        // Create the dsl extension
-        return project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project, code, resource)
+        return project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project,
+                multiFileContainer, singleFileContainer)
     }
 
-    static void configure(Project project, DslSpec dsl, VelocityExtension velocity) {
+    static void configure(Project project, DslExtension dsl, VelocityExtension velocity) {
         configureCodeTasks(project, dsl, velocity)
         configureResourceTasks(project, dsl, velocity)
     }
 
-    static VelocityExtension createVelocityExtension(Project project, DslSpec dsl) {
+    static VelocityExtension createVelocityExtension(Project project, DslExtension dsl) {
         return ((ExtensionAware) dsl).extensions.create(EXTENSION_NAME_VELOCITY, VelocityExtension, project)
     }
 
-    static void configureCodeTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
-        dsl.multiFile.all { MultiFileGeneratorExtension op ->
+    static void configureCodeTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
+        dsl.multiFile.configureEach { MultiFileGeneratorExtension op ->
             String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
                 @Override
@@ -70,8 +73,8 @@ class DslPluginBase implements Plugin<Project> {
         }
     }
 
-    static void configureResourceTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
-        dsl.singleFile.all { SingleFileGeneratorExtension op ->
+    static void configureResourceTasks(Project project, DslExtension dsl, VelocityExtension velocity) {
+        dsl.singleFile.configureEach { SingleFileGeneratorExtension op ->
             String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.capitalize()
             project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
                 @Override
@@ -103,25 +106,21 @@ class DslPluginBase implements Plugin<Project> {
     }
 
     static File findDatabaseType(FileCollection collection, String type) {
-        final String fileExt = FilenameUtils.getExtension(type)
-        if (fileExt && fileExt != ".properties") {
-            throw new GradleException("dsl.databasetype has an invalid file extension")
+        if (collection.isEmpty()) {
+            throw new GradleException("Database types not supplied to plugin")
         }
 
-        String filename
-        if (!fileExt) {
-            if (!type.contains("-type")) {
-                filename = "$type-type$fileExt"
-            } else {
-                filename = "$type$fileExt"
-            }
-        } else {
-            filename = type
+        if (!type) {
+            throw new GradleException("Database type not specified")
         }
 
-        return collection.asFileTree
-                .matching(new PatternSet().include(FileTypes.PATTERN_DB_TYPE))
-                .files.find { it.name == filename }
+        final String filename = "$type-types.$FileTypes.EXTENSION_DB_TYPE"
+        PatternSet pattern = new PatternSet().include(FileTypes.PATTERN_DB_TYPE)
+        File found = collection.asFileTree.matching(pattern).files.find { it.name == filename }
+        if (!found) {
+            throw new GradleException("Can't find $filename in collection of database types")
+        }
+        return found
     }
 
     static File findFileInCollection(FileCollection collection, File file) {

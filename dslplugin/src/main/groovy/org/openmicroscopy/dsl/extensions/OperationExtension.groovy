@@ -3,10 +3,9 @@ package org.openmicroscopy.dsl.extensions
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.openmicroscopy.dsl.extensions.specs.OperationSpec
 
 @CompileStatic
-class OperationExtension implements OperationSpec {
+class OperationExtension {
 
     final String name
 

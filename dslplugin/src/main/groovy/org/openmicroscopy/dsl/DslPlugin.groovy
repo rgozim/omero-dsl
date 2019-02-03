@@ -62,9 +62,7 @@ class DslPlugin implements Plugin<Project> {
             project.tasks.named("compileJava").configure(new Action<Task>() {
                 @Override
                 void execute(Task t) {
-                    t.dependsOn = project.tasks.withType(GeneratorBaseTask).findAll {
-                        GeneratorBaseTask task -> task.group == DslPluginBase.GROUP
-                    }
+                    t.dependsOn = project.tasks.withType(GeneratorBaseTask)
                 }
             })
         }
