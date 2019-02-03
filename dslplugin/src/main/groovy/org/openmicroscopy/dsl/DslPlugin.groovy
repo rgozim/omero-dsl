@@ -8,6 +8,7 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.VelocityExtension
@@ -68,15 +69,11 @@ class DslPlugin implements Plugin<Project> {
         }
     }
 
+    // ToDo: fill this functionality in to handle jar naming
+    static void configureForMavenPublish(Project project) {
+        project.plugins.withType(MavenPublishPlugin) { MavenPublishPlugin plugin ->
+
+        }
+    }
+
 }
-
-
-// Set defaults for all dsl extensions
-// NB: not sure about this block
-/*project.dsl.files.all { MultiFileGeneratorExtension resExt ->
-    resExt.outputDir = "java"
-}
-
-project.dsl.file.all { SingleFileGeneratorExtension resExt ->
-    resExt.outputFile = "resources"
-}*/
