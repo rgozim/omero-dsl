@@ -22,10 +22,10 @@ import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 @CompileStatic
 class DslPluginBase implements Plugin<Project> {
 
-    public static final String GROUP = "omero-dsl"
-    public static final String EXTENSION_NAME_DSL = "dsl"
-    public static final String EXTENSION_NAME_VELOCITY = "velocity"
-    public static final String TASK_PREFIX_GENERATE = "generate"
+    static final String GROUP = "omero-dsl"
+    static final String EXTENSION_NAME_DSL = "dsl"
+    static final String EXTENSION_NAME_VELOCITY = "velocity"
+    static final String TASK_PREFIX_GENERATE = "generate"
 
     @Override
     void apply(Project project) {
