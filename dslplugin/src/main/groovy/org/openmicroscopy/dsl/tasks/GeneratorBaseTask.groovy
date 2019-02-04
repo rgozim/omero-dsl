@@ -4,88 +4,129 @@ import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.Factory
 import org.openmicroscopy.dsl.FileTypes
+
+import javax.inject.Inject
 
 @CompileStatic
 abstract class GeneratorBaseTask extends DefaultTask {
 
     private static final Logger Log = Logging.getLogger(GeneratorBaseTask)
 
-    @InputFiles
-    FileCollection omeXmlFiles = project.files()
+    private File template
 
-    @InputFile
-    File template
+    private File databaseType
 
-    @InputFile
-    File databaseType     // Could be a directory or a file
+    private final PatternFilterable omeXmlPatternSet
 
-    @Input
-    @Optional
-    Properties velocityProperties = new Properties()
+    private List<Object> omeXmlFiles = new ArrayList<>()
+
+    private Properties velocityConfig = new Properties()
+
+    GeneratorBaseTask() {
+        omeXmlPatternSet = getPatternSetFactory().create()
+                .include(FileTypes.PATTERN_OME_XML)
+    }
+
+    @Inject
+    protected Factory<PatternSet> getPatternSetFactory() {
+        throw new UnsupportedOperationException()
+    }
 
     @TaskAction
     void apply() {
-        VelocityEngine ve = new VelocityEngine(velocityProperties)
+        VelocityEngine ve = new VelocityEngine(velocityConfig)
 
         // Build our file generator
         def builder = createGenerator()
         builder.velocityEngine = ve
         builder.profile = databaseType
         builder.template = template
-        builder.databaseTypes = _getDatabaseTypeProperties()
-        builder.omeXmlFiles = _getOmeXmlFiles()
+        builder.omeXmlFiles = getOmeXmlFiles().files
+        builder.databaseTypes = getDatabaseTypes()
         builder.build().call()
     }
 
     abstract protected Generator.Builder createGenerator()
 
-    void omeXmlFiles(Object... files) {
-        setOmeXmlFiles(files)
+    @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
+    FileTree getOmeXmlFiles() {
+        ArrayList<Object> copy = new ArrayList<Object>(this.omeXmlFiles)
+        FileTree src = project.files(copy).asFileTree
+        return src.matching(omeXmlPatternSet)
     }
 
-    void setOmeXmlFiles(Object... files) {
-        this.omeXmlFiles = project.files(files)
-    }
-
-    void template(Object dir) {
-        setTemplate(dir)
-    }
-
-    void setTemplate(Object dir) {
-        this.template = project.file(dir)
-    }
-
-    void databaseType(Object file) {
-        setDatabaseType(file)
-    }
-
-    void setDatabaseType(Object file) {
-        this.databaseType = project.file(file)
-    }
-
-    private Properties _getDatabaseTypeProperties() {
+    @Input
+    Properties getDatabaseTypes() {
         Properties databaseTypeProps = new Properties()
         databaseType.withInputStream { databaseTypeProps.load(it) }
         return databaseTypeProps
     }
 
-    private Collection<File> _getOmeXmlFiles() {
-        return _getFilesInCollection(omeXmlFiles, FileTypes.PATTERN_OME_XML)
+    @InputFile
+    File getTemplate() {
+        return template
     }
 
-    private static Collection<File> _getFilesInCollection(FileCollection collection, String include) {
-        PatternSet patternSet = new PatternSet().include(include)
-        return collection.asFileTree.matching(patternSet).files
+    @Input
+    @Optional
+    Properties getVelocityConfig() {
+        return velocityConfig
+    }
+
+    GeneratorBaseTask omeXmlFiles(Object... omeXml) {
+        Collections.addAll(this.omeXmlFiles, omeXml)
+        return this
+    }
+
+    void setOmeXmlFiles(FileTree source) {
+        setOmeXmlFiles((Object) source)
+    }
+
+    void setOmeXmlFiles(Object... omeXml) {
+        this.omeXmlFiles.clear()
+        this.omeXmlFiles.add(omeXml)
+    }
+
+    GeneratorBaseTask template(File file) {
+        setTemplate(file)
+        return this
+    }
+
+    void setTemplate(File file) {
+        this.template = file
+    }
+
+    GeneratorBaseTask databaseType(File file) {
+        setDatabaseType(file)
+        return this
+    }
+
+    void setDatabaseType(File file) {
+        this.databaseType = file
+    }
+
+    GeneratorBaseTask velocityConfig(Properties config) {
+        setVelocityConfig(new Properties(config))
+        return this
+    }
+
+    void setVelocityConfig(Properties config) {
+        this.velocityConfig = config
     }
 
 }

@@ -82,3 +82,52 @@ class DslExtension implements DslSpec {
     }
 
 }
+
+
+//void omeXmlFiles(Object... paths) {
+//    setOmeXmlFiles(paths)
+//}
+//
+//void omeXmlFiles(Iterable<?> paths) {
+//    setOmeXmlFiles(paths)
+//}
+//
+//void setOmeXmlFiles(Object... paths) {
+//    this.omeXmlFiles.setFrom(paths)
+//}
+//
+//void setOmeXmlFiles(Iterable<?> paths) {
+//    this.omeXmlFiles.setFrom(paths)
+//}
+//
+//void templates(Object... paths) {
+//    setTemplates(paths)
+//}
+//
+//void templates(Iterable<?> paths) {
+//    setTemplates(paths)
+//}
+//
+//void setTemplates(Object... paths) {
+//    this.templates.setFrom(paths)
+//}
+//
+//void setTemplates(Iterable<?> paths) {
+//    this.templates.setFrom(paths)
+//}
+//
+//void databaseTypes(Object... paths) {
+//    setDatabaseTypes(paths)
+//}
+//
+//void databaseTypes(Iterable<?> paths) {
+//    setDatabaseTypes(paths)
+//}
+//
+//void setDatabaseTypes(Object... paths) {
+//    this.templates.setFrom(paths)
+//}
+//
+//void setDatabaseTypes(Iterable<?> paths) {
+//    this.databaseTypes.setFrom(paths)
+//}

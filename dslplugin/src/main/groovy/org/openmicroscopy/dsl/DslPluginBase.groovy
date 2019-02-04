@@ -6,6 +6,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.ExtensionAware
@@ -63,11 +64,11 @@ class DslPluginBase implements Plugin<Project> {
                 @Override
                 void execute(FilesGeneratorTask t) {
                     t.group = GROUP
-                    t.velocityProperties = velocity.data.get()
+                    t.velocityConfig = velocity.data.get()
                     t.formatOutput = op.formatOutput
                     t.outputDir = getOutputDir(dsl.outputDir, op.outputDir)
-                    t.template = findFileInCollection(dsl.templates, op.template)
-                    t.databaseType = findDatabaseType(dsl.databaseTypes, dsl.database)
+                    t.template = findTemplate(project, dsl.templates, op.template)
+                    t.databaseType = findDatabaseType(project, dsl.databaseTypes, dsl.database)
                     t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
                 }
             })
@@ -81,10 +82,10 @@ class DslPluginBase implements Plugin<Project> {
                 @Override
                 void execute(FileGeneratorTask t) {
                     t.group = GROUP
-                    t.velocityProperties = velocity.data.get()
+                    t.velocityConfig = velocity.data.get()
                     t.outFile = getOutputDir(dsl.outputDir, op.outputFile)
-                    t.template = findFileInCollection(dsl.templates, op.template)
-                    t.databaseType = findDatabaseType(dsl.databaseTypes, dsl.database)
+                    t.template = findTemplate(project, dsl.templates, op.template)
+                    t.databaseType = findDatabaseType(project, dsl.databaseTypes, dsl.database)
                     t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
                 }
             })
@@ -106,29 +107,36 @@ class DslPluginBase implements Plugin<Project> {
         return new File(dslFile, "$singleFile")
     }
 
-    static File findDatabaseType(FileCollection collection, String type) {
-        if (collection.isEmpty()) {
-            throw new GradleException("Database types not supplied to plugin")
-        }
-
+    static File findDatabaseType(Project project, FileCollection collection, String type) {
         if (!type) {
             throw new GradleException("Database type not specified")
         }
-
-        final String filename = "$type-types.$FileTypes.EXTENSION_DB_TYPE"
-        PatternSet pattern = new PatternSet().include(FileTypes.PATTERN_DB_TYPE)
-        File found = collection.asFileTree.matching(pattern).files.find { it.name == filename }
-        if (!found) {
-            throw new GradleException("Can't find $filename in collection of database types")
+        File file = new File("$type-types.$FileTypes.EXTENSION_DB_TYPE")
+        File databaseType = findInCollection(project, collection, file, FileTypes.PATTERN_DB_TYPE)
+        if (!databaseType) {
+            throw new GradleException("Can't find $file in collection of database types")
         }
-        return found
+        return databaseType
     }
 
-    static File findFileInCollection(FileCollection collection, File file) {
+    static File findTemplate(Project project, FileCollection collection, File file) {
         if (file.isAbsolute() && file.isFile()) {
             return file
         }
-        return collection.files.find { it.name == file.name }
+        File template = findInCollection(project, collection, file, FileTypes.PATTERN_TEMPLATE)
+        if (!template) {
+            throw new GradleException("Can't find $file in collection of templates")
+        }
+        return template
+    }
+
+    static File findInCollection(Project project, FileCollection collection, File file, String include) {
+        return getFiles(project, collection, include).files.find { File f -> f.name == file.name }
+    }
+
+    static FileTree getFiles(Project project, FileCollection collection, String include) {
+        FileTree src = project.files(collection).asFileTree
+        return src.matching(new PatternSet().include(include))
     }
 
 }
