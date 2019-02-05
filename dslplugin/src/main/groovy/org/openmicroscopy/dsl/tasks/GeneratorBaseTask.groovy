@@ -1,6 +1,7 @@
 package org.openmicroscopy.dsl.tasks
 
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
@@ -70,7 +71,12 @@ abstract class GeneratorBaseTask extends DefaultTask {
         return src.matching(omeXmlPatternSet)
     }
 
-    @Input
+    @InputFile
+    File getDatabaseType() {
+        return databaseType
+    }
+
+    @Internal
     Properties getDatabaseTypes() {
         Properties databaseTypeProps = new Properties()
         databaseType.withInputStream { databaseTypeProps.load(it) }
