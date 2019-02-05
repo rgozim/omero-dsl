@@ -3,37 +3,49 @@ package org.openmicroscopy.dsl.tasks
 import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.SingleFileGenerator
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.OutputFile
 
+@SuppressWarnings("UnstableApiUsage")
 @CompileStatic
 class FileGeneratorTask extends GeneratorBaseTask {
 
     /**
      * Set this when you only want to generate a single file
      */
-    @OutputFile
-    File outFile
+    private final RegularFileProperty outputFile = objects.fileProperty()
 
     @Override
     protected Generator.Builder createGenerator() {
         return new SingleFileGenerator.Builder()
-                .setOutFile(outFile)
+                .setOutFile(outputFile.get().asFile)
     }
 
-    void outFile(String outFile) {
-        setOutFile(outFile)
+    @OutputFile
+    RegularFileProperty getOutputFile() {
+        return outputFile
     }
 
-    void outFile(File outFile) {
-        setOutFile(outFile)
+    void setOutputFile(String outFile) {
+        setOutputFile(project.file(outFile))
     }
 
-    void setOutFile(String outFile) {
-        setOutFile(project.file(outFile))
+    void setOutputFile(Provider<File> outFile) {
+        this.outputFile.set(project.layout.file(outFile))
     }
 
-    void setOutFile(File outFile) {
-        this.outFile = outFile
+    void setOutputFile(Provider<? extends RegularFile> outFile) {
+        this.outputFile.set(outFile)
+    }
+
+    void setOutputFile(RegularFile outFile) {
+        this.outputFile.set(outFile)
+    }
+
+    void setOutputFile(File outFile) {
+        this.outputFile.set(outFile)
     }
 
 }

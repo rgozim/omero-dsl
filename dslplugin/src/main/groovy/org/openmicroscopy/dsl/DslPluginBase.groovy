@@ -1,6 +1,5 @@
 package org.openmicroscopy.dsl
 
-
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -10,6 +9,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.util.PatternSet
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
@@ -20,6 +20,8 @@ import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
+
+import java.util.concurrent.Callable
 
 class DslPluginBase implements Plugin<Project> {
 
@@ -66,10 +68,10 @@ class DslPluginBase implements Plugin<Project> {
                     t.group = GROUP
                     t.velocityConfig = velocity.data.get()
                     t.formatOutput = op.formatOutput
-                    t.outputDir = getOutputDir(dsl.outputDir, op.outputDir)
+                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
                     t.template = findTemplate(project, dsl.templates, op.template)
                     t.databaseType = findDatabaseType(project, dsl.databaseTypes, dsl.database)
-                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
+                    t.outputDir = getOutputDir(project, dsl.outputDir, op.outputDir)
                 }
             })
         }
@@ -83,51 +85,66 @@ class DslPluginBase implements Plugin<Project> {
                 void execute(FileGeneratorTask t) {
                     t.group = GROUP
                     t.velocityConfig = velocity.data.get()
-                    t.outFile = getOutputDir(dsl.outputDir, op.outputFile)
+                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
                     t.template = findTemplate(project, dsl.templates, op.template)
                     t.databaseType = findDatabaseType(project, dsl.databaseTypes, dsl.database)
-                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
+                    t.outputFile = getOutputDir(project, dsl.outputDir, op.outputFile)
                 }
             })
         }
     }
 
-    static File getOutputDir(File dslFile, File singleFile) {
-        if (!singleFile) {
-            return dslFile
-        }
-
-        // If singleFile starts with the project root directory
-        // then we know it is a full path to a file
-        // singleFile.toPath().startsWith(project.rootDir.toPath())
-        if (!dslFile || singleFile.isAbsolute()) {
-            return singleFile
-        }
-
-        return new File(dslFile, "$singleFile")
+    static Provider<File> getOutputDir(Project project, File dslFile, File singleFile) {
+        project.provider(new Callable<File>() {
+            @Override
+            File call() throws Exception {
+                if (!singleFile) {
+                    return dslFile
+                }
+                // If singleFile starts with the project root directory
+                // then we know it is a full path to a file
+                // singleFile.toPath().startsWith(project.rootDir.toPath())
+                if (!dslFile || singleFile.isAbsolute()) {
+                    return singleFile
+                }
+                return new File(dslFile, "$singleFile")
+            }
+        })
     }
 
-    static File findDatabaseType(Project project, FileCollection collection, String type) {
-        if (!type) {
-            throw new GradleException("Database type not specified")
-        }
-        File file = new File("$type-types.$FileTypes.EXTENSION_DB_TYPE")
-        File databaseType = findInCollection(project, collection, file, FileTypes.PATTERN_DB_TYPE)
-        if (!databaseType) {
-            throw new GradleException("Can't find $file in collection of database types")
-        }
-        return databaseType
+    @SuppressWarnings("UnstableApiUsage")
+    static Provider<File> findDatabaseType(Project project, FileCollection collection, String type) {
+        project.provider(new Callable<File>() {
+            @Override
+            File call() throws Exception {
+                if (!type) {
+                    throw new GradleException("Database type not specified")
+                }
+                File file = new File("$type-types.$FileTypes.EXTENSION_DB_TYPE")
+                File databaseType = findInCollection(project, collection, file, FileTypes.PATTERN_DB_TYPE)
+                if (!databaseType) {
+                    throw new GradleException("Can't find $file in collection of database types")
+                }
+                return databaseType
+            }
+        })
     }
 
-    static File findTemplate(Project project, FileCollection collection, File file) {
-        if (file.isAbsolute() && file.isFile()) {
-            return file
-        }
-        File template = findInCollection(project, collection, file, FileTypes.PATTERN_TEMPLATE)
-        if (!template) {
-            throw new GradleException("Can't find $file in collection of templates")
-        }
-        return template
+    @SuppressWarnings("UnstableApiUsage")
+    static Provider<File> findTemplate(Project project, FileCollection collection, File file) {
+        project.provider(new Callable<File>() {
+            @Override
+            File call() throws Exception {
+                if (file.isAbsolute() && file.isFile()) {
+                    return file
+                }
+                File template = findInCollection(project, collection, file, FileTypes.PATTERN_TEMPLATE)
+                if (!template) {
+                    throw new GradleException("Can't find $file in collection of templates")
+                }
+                return template
+            }
+        })
     }
 
     static File findInCollection(Project project, FileCollection collection, File file, String include) {

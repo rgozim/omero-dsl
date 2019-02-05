@@ -4,8 +4,13 @@ import groovy.transform.CompileStatic
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
 class FilesGeneratorTask extends GeneratorBaseTask {
@@ -14,8 +19,7 @@ class FilesGeneratorTask extends GeneratorBaseTask {
      * Set this when you want to generate multiple files
      * Note: also requires setting {@link this.formatOutput}
      */
-    @OutputDirectory
-    File outputDir
+    private final DirectoryProperty outputDir = objects.directoryProperty()
 
     @Nested
     MultiFileGenerator.FileNameFormatter formatOutput
@@ -33,16 +37,29 @@ class FilesGeneratorTask extends GeneratorBaseTask {
         }
     }
 
-    void outputDir(String dir) {
-        setOutputDir(dir)
+    @OutputDirectory
+    DirectoryProperty getOutputDir() {
+        return outputDir
     }
 
-    void setOutputDir(String dir) {
-        this.outputDir = project.file(dir)
+    void setOutputDir(String outFile) {
+        setOutputDir(project.file(outFile))
     }
 
-    void setOutputDir(File dir) {
-        this.outputDir = dir
+    void setOutputDir(Provider<File> outFile) {
+        this.outputDir.set(project.layout.projectDirectory.dir(outFile))
+    }
+
+    void setOutputDir(Provider<? extends RegularFile> outFile) {
+        this.outputFile.set(outFile)
+    }
+
+    void setOutputDir(RegularFile outFile) {
+        this.outputFile.set(outFile)
+    }
+
+    void setOutputDir(File outFile) {
+        this.outputFile.set(outFile)
     }
 
     @Override
