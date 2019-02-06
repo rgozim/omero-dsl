@@ -80,17 +80,17 @@ class DslExtension implements DslSpec {
 //        setOutputDir(dir)
 //    }
 
-//    void setOutputDir(Provider<Directory> dir) {
-//        this.outputDir.set(dir)
-//    }
-//
-//    void setOutputDir(Directory dir) {
-//        this.outputDir.set(dir)
-//    }
-//
-//    void setOutputDir(File dir) {
-//        this.outputDir.set(dir)
-//    }
+    void setOutputDir(Provider<? extends Directory> dir) {
+        this.outputDir.set(dir)
+    }
+
+    void setOutputDir(Directory dir) {
+        this.outputDir.set(dir)
+    }
+
+    void setOutputDir(File dir) {
+        this.outputDir.set(dir)
+    }
 
     void database(String db) {
         this.database.set(db)
