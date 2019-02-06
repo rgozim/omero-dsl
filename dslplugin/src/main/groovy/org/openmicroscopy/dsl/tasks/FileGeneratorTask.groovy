@@ -15,7 +15,7 @@ class FileGeneratorTask extends GeneratorBaseTask {
     /**
      * Set this when you only want to generate a single file
      */
-    private final RegularFileProperty outputFile = objects.fileProperty()
+    private final RegularFileProperty outputFile = project.objects.fileProperty()
 
     @Override
     protected Generator.Builder createGenerator() {
@@ -30,10 +30,6 @@ class FileGeneratorTask extends GeneratorBaseTask {
 
     void setOutputFile(String outFile) {
         setOutputFile(project.file(outFile))
-    }
-
-    void setOutputFile(Provider<File> outFile) {
-        this.outputFile.set(project.layout.file(outFile))
     }
 
     void setOutputFile(Provider<? extends RegularFile> outFile) {

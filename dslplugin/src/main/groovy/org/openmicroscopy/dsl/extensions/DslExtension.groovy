@@ -4,7 +4,12 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.openmicroscopy.dsl.extensions.specs.DslSpec
 
 @CompileStatic
@@ -16,15 +21,15 @@ class DslExtension implements DslSpec {
 
     final NamedDomainObjectContainer<SingleFileGeneratorExtension> singleFile
 
-    FileCollection omeXmlFiles
+    final ConfigurableFileCollection omeXmlFiles
 
-    FileCollection databaseTypes
+    final ConfigurableFileCollection databaseTypes
 
-    FileCollection templates
+    final ConfigurableFileCollection templates
 
-    File outputDir
+    final DirectoryProperty outputDir
 
-    String database
+    final Property<String> database
 
     DslExtension(Project project,
                  NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile,
@@ -35,6 +40,8 @@ class DslExtension implements DslSpec {
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
+        this.outputDir = project.objects.directoryProperty()
+        this.database = project.objects.property(String)
     }
 
     void multiFile(Action<? super NamedDomainObjectContainer<MultiFileGeneratorExtension>> action) {
@@ -46,88 +53,47 @@ class DslExtension implements DslSpec {
     }
 
     void omeXmlFiles(FileCollection files) {
-        setOmeXmlFiles(files)
+        this.omeXmlFiles.from files
     }
 
     void setOmeXmlFiles(FileCollection files) {
-        this.omeXmlFiles = files
+        this.omeXmlFiles.setFrom(files)
     }
 
     void databaseTypes(FileCollection files) {
-        setDatabaseTypes(files)
+        this.databaseTypes.from files
     }
 
     void setDatabaseTypes(FileCollection files) {
-        this.databaseTypes = files
+        this.databaseTypes.setFrom files
     }
 
     void templates(FileCollection files) {
-        setTemplates(files)
+        this.templates.from files
     }
 
     void setTemplates(FileCollection files) {
-        this.templates = files
+        this.templates.setFrom files
     }
 
-    void outputDir(Object dir) {
-        setOutputDir(dir)
-    }
+//    void outputDir(Object dir) {
+//        setOutputDir(dir)
+//    }
 
-    void setOutputDir(Object dir) {
-        this.outputDir = project.file(dir)
-    }
+//    void setOutputDir(Provider<Directory> dir) {
+//        this.outputDir.set(dir)
+//    }
+//
+//    void setOutputDir(Directory dir) {
+//        this.outputDir.set(dir)
+//    }
+//
+//    void setOutputDir(File dir) {
+//        this.outputDir.set(dir)
+//    }
 
     void database(String db) {
-        this.database = db
+        this.database.set(db)
     }
 
 }
-
-
-//void omeXmlFiles(Object... paths) {
-//    setOmeXmlFiles(paths)
-//}
-//
-//void omeXmlFiles(Iterable<?> paths) {
-//    setOmeXmlFiles(paths)
-//}
-//
-//void setOmeXmlFiles(Object... paths) {
-//    this.omeXmlFiles.setFrom(paths)
-//}
-//
-//void setOmeXmlFiles(Iterable<?> paths) {
-//    this.omeXmlFiles.setFrom(paths)
-//}
-//
-//void templates(Object... paths) {
-//    setTemplates(paths)
-//}
-//
-//void templates(Iterable<?> paths) {
-//    setTemplates(paths)
-//}
-//
-//void setTemplates(Object... paths) {
-//    this.templates.setFrom(paths)
-//}
-//
-//void setTemplates(Iterable<?> paths) {
-//    this.templates.setFrom(paths)
-//}
-//
-//void databaseTypes(Object... paths) {
-//    setDatabaseTypes(paths)
-//}
-//
-//void databaseTypes(Iterable<?> paths) {
-//    setDatabaseTypes(paths)
-//}
-//
-//void setDatabaseTypes(Object... paths) {
-//    this.templates.setFrom(paths)
-//}
-//
-//void setDatabaseTypes(Iterable<?> paths) {
-//    this.databaseTypes.setFrom(paths)
-//}

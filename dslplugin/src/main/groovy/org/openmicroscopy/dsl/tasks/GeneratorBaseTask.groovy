@@ -4,7 +4,9 @@ import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
+import org.gradle.api.Transformer
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
@@ -34,34 +36,34 @@ abstract class GeneratorBaseTask extends DefaultTask {
 
     private static final Logger Log = Logging.getLogger(GeneratorBaseTask)
 
-    private final Property<Properties> velocityConfig = objects.property(Properties)
+    private final RegularFileProperty template = project.objects.fileProperty()
 
-    private final RegularFileProperty template = objects.fileProperty()
-
-    private final RegularFileProperty databaseType = objects.fileProperty()
+    private final RegularFileProperty databaseType = project.objects.fileProperty()
 
     private final List<Object> omeXmlFiles = new ArrayList<>()
 
     private final PatternFilterable omeXmlPatternSet
 
-    protected final ObjectFactory objects
+    private final Property<Properties> velocityConfig = project.objects.property(Properties)
+
 
     GeneratorBaseTask() {
         omeXmlPatternSet = getPatternSetFactory().create()
                 .include(FileTypes.PATTERN_OME_XML)
-
-        objects = getObjectFactory()
     }
 
-    @SuppressWarnings("GrMethodMayBeStatic")
     @Inject
     protected Factory<PatternSet> getPatternSetFactory() {
         throw new UnsupportedOperationException()
     }
 
-    @SuppressWarnings("GrMethodMayBeStatic")
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
         throw new UnsupportedOperationException()
     }
 
@@ -116,10 +118,15 @@ abstract class GeneratorBaseTask extends DefaultTask {
     @Internal
     Provider<String> getProfile() {
         // Determine database type
-        return databaseType.map { File file ->
-            def fileName = file.name
-            fileName.substring(0, fileName.lastIndexOf("-"))
-        }
+        return databaseType.flatMap(new Transformer<Provider<String>, RegularFile>() {
+            @Override
+            Provider<String> transform(RegularFile t) {
+                String fileName = t.asFile.name
+                Property<String> p = project.objects.property(String)
+                p.set(fileName.substring(0, fileName.lastIndexOf("-")))
+                p
+            }
+        })
     }
 
     GeneratorBaseTask omeXmlFiles(Object... omeXml) {
@@ -144,11 +151,7 @@ abstract class GeneratorBaseTask extends DefaultTask {
         this.velocityConfig.set(config)
     }
 
-    void setTemplate(Provider<File> template) {
-        this.template.set(project.layout.file(template))
-    }
-
-    void setTemplate(Provider<RegularFile> template) {
+    void setTemplate(Provider<? extends RegularFile> template) {
         this.template.set(template)
     }
 
@@ -156,11 +159,7 @@ abstract class GeneratorBaseTask extends DefaultTask {
         this.template.set(template)
     }
 
-    void setDatabaseType(Provider<File> template) {
-        this.databaseType.set(project.layout.file(template))
-    }
-
-    void setDatabaseType(Provider<RegularFile> template) {
+    void setDatabaseType(Provider<? extends RegularFile> template) {
         this.databaseType.set(template)
     }
 
