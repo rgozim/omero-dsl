@@ -28,6 +28,8 @@ import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 
+import java.util.concurrent.Callable
+
 @SuppressWarnings("UnstableApiUsage")
 @CompileStatic
 class DslPluginBase implements Plugin<Project> {
@@ -96,6 +98,8 @@ class DslPluginBase implements Plugin<Project> {
                     t.template = findTemplateProvider(project, dsl.templates, op.template)
                     t.databaseType = findDatabaseTypeProvider(project, dsl.databaseTypes, dsl.database)
                     t.outputFile = getOutputFileProvider(dsl.outputDir, op.outputFile)
+
+
                 }
             })
         }
@@ -111,20 +115,26 @@ class DslPluginBase implements Plugin<Project> {
 
     static Provider<RegularFile> findDatabaseTypeProvider(Project project, ConfigurableFileCollection collection,
                                                           Property<String> type) {
-        type.flatMap { String t ->
-            RegularFileProperty result = project.objects.fileProperty()
-            result.set(findDatabaseType(project, collection, t))
-            result
-        }
+        project.provider(new Callable<RegularFile>() {
+            @Override
+            RegularFile call() throws Exception {
+                RegularFileProperty result = project.objects.fileProperty()
+                result.set(findDatabaseType(project, collection, type.get()))
+                result.get()
+            }
+        })
     }
 
     static Provider<RegularFile> findTemplateProvider(Project project, FileCollection collection,
                                                       Property<File> file) {
-        file.flatMap { File f ->
-            RegularFileProperty result = project.objects.fileProperty()
-            result.set(findTemplate(project, collection, f))
-            result
-        }
+        project.provider(new Callable<RegularFile>() {
+            @Override
+            RegularFile call() throws Exception {
+                RegularFileProperty result = project.objects.fileProperty()
+                result.set(findTemplate(project, collection, file.get()))
+                result.get()
+            }
+        })
     }
 
     static File findDatabaseType(Project project, FileCollection collection, String type) {

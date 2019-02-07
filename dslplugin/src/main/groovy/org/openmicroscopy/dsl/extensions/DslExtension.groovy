@@ -76,10 +76,6 @@ class DslExtension implements DslSpec {
         this.templates.setFrom files
     }
 
-//    void outputDir(Object dir) {
-//        setOutputDir(dir)
-//    }
-
     void setOutputDir(Provider<? extends Directory> dir) {
         this.outputDir.set(dir)
     }

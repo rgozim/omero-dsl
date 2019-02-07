@@ -1,13 +1,15 @@
 package org.openmicroscopy.dsl.tasks
 
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
+import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 
 @SuppressWarnings("UnstableApiUsage")
@@ -20,14 +22,17 @@ class FilesGeneratorTask extends GeneratorBaseTask {
      */
     private final DirectoryProperty outputDir = project.objects.directoryProperty()
 
-    @Nested
-    MultiFileGenerator.FileNameFormatter formatOutput
+    /**
+     * Default callback returns SemanticType.shortName
+     */
+    private Property<MultiFileGenerator.FileNameFormatter> formatOutput =
+            project.objects.property(MultiFileGenerator.FileNameFormatter)
 
     @Override
     protected Generator.Builder createGenerator() {
         return new MultiFileGenerator.Builder()
                 .setOutputDir(outputDir.get().asFile)
-                .setFileNameFormatter(formatOutput)
+                .setFileNameFormatter(formatOutput.get())
     }
 
     @OutputDirectory
@@ -35,17 +40,31 @@ class FilesGeneratorTask extends GeneratorBaseTask {
         return outputDir
     }
 
-    void formatOutput(Closure closure) {
-        setFormatOutput(closure)
+    @Internal
+    Property<MultiFileGenerator.FileNameFormatter> getOutputFormatter() {
+        return formatOutput
     }
 
-    void setFormatOutput(Closure closure) {
-        formatOutput = new MultiFileGenerator.FileNameFormatter() {
+    FilesGeneratorTask formatOutput(final Transformer<? extends String, ? super SemanticType> transformer) {
+        setFormatOutput(transformer)
+        return this
+    }
+
+    void setFormatOutput(final Transformer<? extends String, ? super SemanticType> transformer) {
+        formatOutput.set(new MultiFileGenerator.FileNameFormatter() {
             @Override
             String format(SemanticType t) {
-                return closure(t)
+                return transformer.transform(t)
             }
-        }
+        })
+    }
+
+    void setFormatOutput(Provider<? extends MultiFileGenerator.FileNameFormatter> provider) {
+        formatOutput.set(provider)
+    }
+
+    void setFormatOutput(MultiFileGenerator.FileNameFormatter formatter) {
+        formatOutput.set(formatter)
     }
 
     void setOutputDir(String outFile) {
@@ -63,7 +82,5 @@ class FilesGeneratorTask extends GeneratorBaseTask {
     void setOutputDir(File outFile) {
         this.outputDir.set(outFile)
     }
-
-
 
 }
