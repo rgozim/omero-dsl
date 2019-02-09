@@ -98,8 +98,6 @@ class DslPluginBase implements Plugin<Project> {
                     t.template = findTemplateProvider(project, dsl.templates, op.template)
                     t.databaseType = findDatabaseTypeProvider(project, dsl.databaseTypes, dsl.database)
                     t.outputFile = getOutputFileProvider(dsl.outputDir, op.outputFile)
-
-
                 }
             })
         }
@@ -186,16 +184,3 @@ class DslPluginBase implements Plugin<Project> {
     }
 
 }
-
-
-//static File getOutputDir(File dslFile, File singleFile) {
-//    if (!singleFile) {
-//        return dslFile
-//    }
-//    // If singleFile starts with the project root directory
-//    // then we know it is a full path to a file
-//    if (!dslFile || singleFile.isAbsolute()) {
-//        return singleFile
-//    }
-//    new File(dslFile, "$singleFile")
-//}
