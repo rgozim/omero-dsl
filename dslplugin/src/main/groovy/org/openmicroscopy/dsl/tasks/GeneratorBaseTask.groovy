@@ -5,13 +5,12 @@ import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.Transformer
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -26,9 +25,9 @@ import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.openmicroscopy.dsl.FileTypes
+import org.openmicroscopy.dsl.extensions.VelocityConfig
 
 import javax.inject.Inject
-
 
 @SuppressWarnings("UnstableApiUsage")
 @CompileStatic
@@ -36,16 +35,15 @@ abstract class GeneratorBaseTask extends DefaultTask {
 
     private static final Logger Log = Logging.getLogger(GeneratorBaseTask)
 
+    private final ConfigurableFileCollection omeXmlFiles = project.files()
+
     private final RegularFileProperty template = project.objects.fileProperty()
 
     private final RegularFileProperty databaseType = project.objects.fileProperty()
 
-    private final List<Object> omeXmlFiles = new ArrayList<>()
-
-    private final PatternFilterable omeXmlPatternSet
-
     private final Property<Properties> velocityConfig = project.objects.property(Properties)
 
+    private final PatternFilterable omeXmlPatternSet
 
     GeneratorBaseTask() {
         omeXmlPatternSet = getPatternSetFactory().create()
@@ -57,21 +55,10 @@ abstract class GeneratorBaseTask extends DefaultTask {
         throw new UnsupportedOperationException()
     }
 
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException()
-    }
-
     @TaskAction
     void apply() {
         // Create velocity engine with config
-        VelocityEngine ve = new VelocityEngine(
-                velocityConfig.getOrElse(new Properties()))
+        VelocityEngine ve = new VelocityEngine(velocityConfig.get())
 
         // Build our file generator
         def builder = createGenerator()
@@ -88,8 +75,7 @@ abstract class GeneratorBaseTask extends DefaultTask {
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     FileTree getOmeXmlFiles() {
-        ArrayList<Object> copy = new ArrayList<Object>(this.omeXmlFiles)
-        FileTree src = project.files(copy).asFileTree
+        FileTree src = this.omeXmlFiles.asFileTree
         return src.matching(omeXmlPatternSet)
     }
 
@@ -113,13 +99,13 @@ abstract class GeneratorBaseTask extends DefaultTask {
     Properties getDatabaseTypes() {
         Properties databaseTypeProps = new Properties()
         databaseType.get().asFile.withInputStream { databaseTypeProps.load(it) }
-        return databaseTypeProps
+        databaseTypeProps
     }
 
     @Internal
     Provider<String> getProfile() {
         // Determine database type
-        return databaseType.flatMap(new Transformer<Provider<String>, RegularFile>() {
+        databaseType.flatMap(new Transformer<Provider<String>, RegularFile>() {
             @Override
             Provider<String> transform(RegularFile t) {
                 String fileName = t.asFile.name
@@ -131,21 +117,24 @@ abstract class GeneratorBaseTask extends DefaultTask {
     }
 
     GeneratorBaseTask omeXmlFiles(Object... omeXml) {
-        Collections.addAll(this.omeXmlFiles, omeXml)
+        this.omeXmlFiles.from omeXml
         return this
     }
 
-    void setOmeXmlFiles(FileTree source) {
-        setOmeXmlFiles((Object) source)
+    void setOmeXmlFiles(Iterable<?> omeXml) {
+        this.omeXmlFiles.setFrom(omeXml)
     }
 
     void setOmeXmlFiles(Object... omeXml) {
-        this.omeXmlFiles.clear()
-        this.omeXmlFiles.add(omeXml)
+        this.omeXmlFiles.setFrom(omeXml)
     }
 
     void setVelocityConfig(Provider<Properties> config) {
         this.velocityConfig.set(config)
+    }
+
+    void setVelocityConfig(VelocityConfig config) {
+        setVelocityConfig(config.data)
     }
 
     void setVelocityConfig(Properties config) {

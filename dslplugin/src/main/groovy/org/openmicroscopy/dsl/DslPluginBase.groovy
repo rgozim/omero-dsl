@@ -2,185 +2,141 @@ package org.openmicroscopy.dsl
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.provider.ProviderFactory
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
 import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
-import org.openmicroscopy.dsl.extensions.VelocityExtension
-import org.openmicroscopy.dsl.extensions.specs.DslSpec
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 
-import java.util.concurrent.Callable
+import javax.inject.Inject
 
 @SuppressWarnings("UnstableApiUsage")
 @CompileStatic
-class DslPluginBase implements Plugin<Project> {
+class DslPluginBase extends DslBase implements Plugin<Project> {
 
     static final String GROUP = "omero-dsl"
     static final String EXTENSION_NAME_DSL = "dsl"
-    static final String EXTENSION_NAME_VELOCITY = "velocity"
     static final String TASK_PREFIX_GENERATE = "generate"
 
     private static final Logger Log = Logging.getLogger(DslPluginBase)
 
-    @Override
-    void apply(Project project) {
-        DslExtension dsl = createDslExtension(project)
-        VelocityExtension velocity = createVelocityExtension(project, dsl)
-        configure(project, dsl, velocity)
+    private final ObjectFactory objectFactory
+
+    private final ProviderFactory providerFactory
+
+    @Inject
+    DslPluginBase(ObjectFactory objectFactory, ProviderFactory providerFactory) {
+        this.objectFactory = objectFactory
+        this.providerFactory = providerFactory
     }
 
-    @SuppressWarnings("GrMethodMayBeStatic")
+    @Override
+    void apply(Project project) {
+        DslExtension dsl = project.extensions.findByType(DslExtension)
+        if (!dsl) {
+            // Only create this extension if a higher up extension hasn't already
+            // created one (i.e. blitz plugin)
+            dsl = createDslExtension(project)
+        }
+
+        configure(project, dsl)
+    }
+
     DslExtension createDslExtension(Project project) {
         def multiFileContainer =
                 project.container(MultiFileGeneratorExtension, new MultiFileGeneratorFactory(project))
         def singleFileContainer =
                 project.container(SingleFileGeneratorExtension, new SingleFileGeneratorFactory(project))
 
-        return project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project,
+        project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project,
                 multiFileContainer, singleFileContainer)
     }
 
-    static void configure(Project project, DslSpec dsl, VelocityExtension velocity) {
-        configureCodeTasks(project, dsl, velocity)
-        configureResourceTasks(project, dsl, velocity)
+    void configure(Project project, DslExtension dsl) {
+        configureCodeTasks(project, dsl)
+        configureResourceTasks(project, dsl)
     }
 
-    static VelocityExtension createVelocityExtension(Project project, DslSpec dsl) {
-        return ((ExtensionAware) dsl).extensions.create(EXTENSION_NAME_VELOCITY, VelocityExtension, project)
-    }
-
-    static void configureCodeTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
-        dsl.multiFile.configureEach { MultiFileGeneratorExtension op ->
-            String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.get().capitalize()
-            project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
-                @Override
-                void execute(FilesGeneratorTask t) {
-                    t.group = GROUP
-                    t.velocityConfig = velocity.data
-                    t.formatOutput = op.formatOutput
-                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
-                    t.template = findTemplateProvider(project, dsl.templates, op.template)
-                    t.databaseType = findDatabaseTypeProvider(project, dsl.databaseTypes, dsl.database)
-                    t.outputDir = getOutputDirProvider(dsl.outputDir, op.outputDir)
-                }
-            })
+    void configureCodeTasks(Project project, DslExtension dsl) {
+        dsl.multiFile.configureEach { MultiFileGeneratorExtension mfg ->
+            addMultiFileGenTask(project, dsl, mfg)
         }
     }
 
-    static void configureResourceTasks(Project project, DslSpec dsl, VelocityExtension velocity) {
-        dsl.singleFile.configureEach { SingleFileGeneratorExtension op ->
-            String taskName = TASK_PREFIX_GENERATE + op.name.capitalize() + dsl.database.get().capitalize()
-            project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
-                @Override
-                void execute(FileGeneratorTask t) {
-                    t.group = GROUP
-                    t.velocityConfig = velocity.data
-                    t.omeXmlFiles = dsl.omeXmlFiles + op.omeXmlFiles
-                    t.template = findTemplateProvider(project, dsl.templates, op.template)
-                    t.databaseType = findDatabaseTypeProvider(project, dsl.databaseTypes, dsl.database)
-                    t.outputFile = getOutputFileProvider(dsl.outputDir, op.outputFile)
-                }
-            })
+    void configureResourceTasks(Project project, DslExtension dsl) {
+        dsl.singleFile.configureEach { SingleFileGeneratorExtension sfg ->
+            addSingleFileGenTask(project, dsl, sfg)
         }
     }
 
-    static Provider<Directory> getOutputDirProvider(DirectoryProperty baseDir, Property<File> childDir) {
+    void addMultiFileGenTask(Project project, DslExtension dsl, MultiFileGeneratorExtension ext) {
+        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+        project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
+            @Override
+            void execute(FilesGeneratorTask t) {
+                t.group = GROUP
+                t.formatOutput = ext.formatOutput
+                t.velocityConfig = dsl.velocity
+                t.omeXmlFiles = dsl.omeXmlFiles + ext.omeXmlFiles
+                t.outputDir = getOutputDirProvider(dsl.outputDir, ext.outputDir)
+                t.template = findTemplateProvider(dsl.templates, ext.template)
+                t.databaseType = findDatabaseTypeProvider(dsl.databaseTypes, dsl.database)
+            }
+        })
+    }
+
+    void addSingleFileGenTask(Project project, DslExtension dsl, SingleFileGeneratorExtension ext) {
+        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+        project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
+            @Override
+            void execute(FileGeneratorTask t) {
+                t.group = GROUP
+                t.velocityConfig = dsl.velocity
+                t.omeXmlFiles = dsl.omeXmlFiles + ext.omeXmlFiles
+                t.outputFile = getOutputFileProvider(dsl.outputDir, ext.outputFile)
+                t.template = findTemplateProvider(dsl.templates, ext.template)
+                t.databaseType = findDatabaseTypeProvider(dsl.databaseTypes, dsl.database)
+            }
+        })
+    }
+
+    Provider<Directory> getOutputDirProvider(DirectoryProperty baseDir, Property<File> childDir) {
         childDir.flatMap { File f -> baseDir.dir(f.toString()) }
     }
 
-    static Provider<RegularFile> getOutputFileProvider(DirectoryProperty baseDir, Property<File> childFile) {
+    Provider<RegularFile> getOutputFileProvider(DirectoryProperty baseDir, Property<File> childFile) {
         childFile.flatMap { File f -> baseDir.file(f.toString()) }
     }
 
-    static Provider<RegularFile> findDatabaseTypeProvider(Project project, ConfigurableFileCollection collection,
-                                                          Property<String> type) {
-        project.provider(new Callable<RegularFile>() {
-            @Override
-            RegularFile call() throws Exception {
-                RegularFileProperty result = project.objects.fileProperty()
-                result.set(findDatabaseType(project, collection, type.get()))
-                result.get()
-            }
-        })
-    }
-
-    static Provider<RegularFile> findTemplateProvider(Project project, FileCollection collection,
-                                                      Property<File> file) {
-        project.provider(new Callable<RegularFile>() {
-            @Override
-            RegularFile call() throws Exception {
-                RegularFileProperty result = project.objects.fileProperty()
-                result.set(findTemplate(project, collection, file.get()))
-                result.get()
-            }
-        })
-    }
-
-    static File findDatabaseType(Project project, FileCollection collection, String type) {
-        if (!type) {
-            throw new GradleException("Database type (psql, sql, oracle, etc) not specified")
-        }
-
-        File file = new File("$type-types.$FileTypes.EXTENSION_DB_TYPE")
-        File databaseType = findInCollection(project, collection, file, FileTypes.PATTERN_DB_TYPE)
-        if (!databaseType) {
-            throw new GradleException("Can't find $file in collection of database types")
-        }
-        Log.info("Found database types file $databaseType")
-        return databaseType
-    }
-
-    static File findTemplate(Project project, FileCollection collection, File file) {
-        if (!file) {
-            throw new GradleException("No template (.vm) specified")
-        }
-
-        if (file.isAbsolute() && file.isFile()) {
-            return file
-        }
-        Log.info("Searching for template with file name: $file")
-        File template = findInCollection(project, collection, file, FileTypes.PATTERN_TEMPLATE)
-        if (!template) {
-            throw new GradleException("Can't find $file in collection of templates")
-        }
-        Log.info("Found template file $template")
-        return template
-    }
-
-    static File findInCollection(Project project, FileCollection collection, File file, String include) {
-        Set<File> files = getFiles(project, collection, include)
-        Log.info("Looking for file with name $file.name from the following")
-        files.find { File f ->
-            Log.info("$f")
-            f.name == file.name
+    Provider<RegularFile> findDatabaseTypeProvider(FileCollection collection, Property<String> type) {
+        type.map { String t ->
+            RegularFileProperty result = objectFactory.fileProperty()
+            result.set(findDatabaseType(collection, type.get()))
+            result.get()
         }
     }
 
-    static Set<File> getFiles(Project project, FileCollection collection, String include) {
-        if (collection.isEmpty()) {
-            throw new GradleException("Collection is empty")
+    Provider<RegularFile> findTemplateProvider(FileCollection collection, Property<File> file) {
+        file.map { File f ->
+            RegularFileProperty result = objectFactory.fileProperty()
+            result.set(findTemplate(collection, f))
+            result.get()
         }
-        FileTree src = project.files(collection).asFileTree
-        src.matching(new PatternSet().include(include)).files
     }
 
 }
