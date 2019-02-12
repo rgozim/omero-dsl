@@ -10,22 +10,21 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.openmicroscopy.dsl.extensions.specs.DslSpec
 
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
 
 @CompileStatic
-class DslExtension implements DslSpec {
+class DslExtension {
 
     private final Project project
 
     final VelocityConfig velocity = new VelocityConfig()
 
-    final NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile
+    final NamedDomainObjectContainer<MultiFileConfig> multiFile
 
-    final NamedDomainObjectContainer<SingleFileGeneratorExtension> singleFile
+    final NamedDomainObjectContainer<SingleFileConfig> singleFile
 
     final ConfigurableFileCollection omeXmlFiles
 
@@ -38,8 +37,8 @@ class DslExtension implements DslSpec {
     final DirectoryProperty outputDir
 
     DslExtension(Project project,
-                 NamedDomainObjectContainer<MultiFileGeneratorExtension> multiFile,
-                 NamedDomainObjectContainer<SingleFileGeneratorExtension> singleFile) {
+                 NamedDomainObjectContainer<MultiFileConfig> multiFile,
+                 NamedDomainObjectContainer<SingleFileConfig> singleFile) {
         this.project = project
         this.multiFile = multiFile
         this.singleFile = singleFile
@@ -51,17 +50,17 @@ class DslExtension implements DslSpec {
 
         // Set some conventions
         this.database.convention("psql")
-        this.outputDir.convention(project.layout.projectDirectory.dir("src/generated"))
+        this.outputDir.convention(project.layout.projectDirectory.dir("src/psql"))
         this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
         this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
         this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))
     }
 
-    void multiFile(Action<? super NamedDomainObjectContainer<MultiFileGeneratorExtension>> action) {
+    void multiFile(Action<? super NamedDomainObjectContainer<MultiFileConfig>> action) {
         action.execute(this.multiFile)
     }
 
-    void singleFile(Action<? super NamedDomainObjectContainer<SingleFileGeneratorExtension>> action) {
+    void singleFile(Action<? super NamedDomainObjectContainer<SingleFileConfig>> action) {
         action.execute(this.singleFile)
     }
 

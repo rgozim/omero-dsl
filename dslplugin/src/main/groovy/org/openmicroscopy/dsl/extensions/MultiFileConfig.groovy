@@ -6,15 +6,17 @@ import ome.dsl.velocity.MultiFileGenerator
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
+import org.openmicroscopy.dsl.utils.SemanticTypeClosure
+import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
 
 @CompileStatic
-class MultiFileGeneratorExtension extends OperationExtension {
+class MultiFileConfig extends BaseFileConfig {
 
     final Property<File> outputDir
 
     final Property<MultiFileGenerator.FileNameFormatter> formatOutput
 
-    MultiFileGeneratorExtension(String name, Project project) {
+    MultiFileConfig(String name, Project project) {
         super(name, project)
         this.outputDir = project.objects.property(File)
         this.formatOutput = project.objects.property(MultiFileGenerator.FileNameFormatter)
@@ -40,13 +42,16 @@ class MultiFileGeneratorExtension extends OperationExtension {
         setFormatOutput(transformer)
     }
 
+    void formatOutput(Closure closure) {
+        setFormatOutput(closure)
+    }
+
     void setFormatOutput(final Transformer<? extends String, ? super SemanticType> transformer) {
-        formatOutput.set(new MultiFileGenerator.FileNameFormatter() {
-            @Override
-            String format(SemanticType t) {
-                return transformer.transform(t)
-            }
-        })
+        formatOutput.set(new SemanticTypeTransformer(transformer))
+    }
+
+    void setFormatOutput(Closure closure) {
+        formatOutput.set(new SemanticTypeClosure(closure))
     }
 
 }

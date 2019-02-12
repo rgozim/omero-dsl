@@ -15,9 +15,11 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.TaskProvider
+import org.openmicroscopy.dsl.extensions.BaseFileConfig
 import org.openmicroscopy.dsl.extensions.DslExtension
-import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
-import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
+import org.openmicroscopy.dsl.extensions.MultiFileConfig
+import org.openmicroscopy.dsl.extensions.SingleFileConfig
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
@@ -29,15 +31,19 @@ import javax.inject.Inject
 @CompileStatic
 class DslPluginBase extends DslBase implements Plugin<Project> {
 
-    static final String GROUP = "omero-dsl"
-    static final String EXTENSION_NAME_DSL = "dsl"
-    static final String TASK_PREFIX_GENERATE = "generate"
+    public static final String GROUP = "omero-dsl"
 
-    private static final Logger Log = Logging.getLogger(DslPluginBase)
+    public static final String EXTENSION_NAME_DSL = "dsl"
+
+    public static final String TASK_PREFIX_GENERATE = "generate"
+
+    final Map<String, BaseFileConfig> fileGeneratorConfigMap = [:]
 
     private final ObjectFactory objectFactory
 
     private final ProviderFactory providerFactory
+
+    private static final Logger Log = Logging.getLogger(DslPluginBase)
 
     @Inject
     DslPluginBase(ObjectFactory objectFactory, ProviderFactory providerFactory) {
@@ -47,45 +53,37 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        DslExtension dsl = project.extensions.findByType(DslExtension)
-        if (!dsl) {
-            // Only create this extension if a higher up extension hasn't already
-            // created one (i.e. blitz plugin)
-            dsl = createDslExtension(project)
+        def dsl = createDslExtension(project)
+
+        // Add the map to extra properties
+        // Access via project.fileGeneratorConfigMap
+        project.extensions.extraProperties
+                .set("fileGeneratorConfigMap", fileGeneratorConfigMap)
+
+        dsl.multiFile.whenObjectAdded { MultiFileConfig mfg ->
+            def task = addMultiFileGenTask(project, dsl, mfg)
+            fileGeneratorConfigMap.put(task.name, mfg)
         }
 
-        configure(project, dsl)
+        dsl.singleFile.whenObjectAdded { SingleFileConfig sfg ->
+            def task = addSingleFileGenTask(project, dsl, sfg)
+            fileGeneratorConfigMap.put(task.name, sfg)
+        }
     }
 
     DslExtension createDslExtension(Project project) {
         def multiFileContainer =
-                project.container(MultiFileGeneratorExtension, new MultiFileGeneratorFactory(project))
+                project.container(MultiFileConfig, new MultiFileGeneratorFactory(project))
         def singleFileContainer =
-                project.container(SingleFileGeneratorExtension, new SingleFileGeneratorFactory(project))
+                project.container(SingleFileConfig, new SingleFileGeneratorFactory(project))
 
         project.extensions.create(EXTENSION_NAME_DSL, DslExtension, project,
                 multiFileContainer, singleFileContainer)
     }
 
-    void configure(Project project, DslExtension dsl) {
-        configureCodeTasks(project, dsl)
-        configureResourceTasks(project, dsl)
-    }
-
-    void configureCodeTasks(Project project, DslExtension dsl) {
-        dsl.multiFile.configureEach { MultiFileGeneratorExtension mfg ->
-            addMultiFileGenTask(project, dsl, mfg)
-        }
-    }
-
-    void configureResourceTasks(Project project, DslExtension dsl) {
-        dsl.singleFile.configureEach { SingleFileGeneratorExtension sfg ->
-            addSingleFileGenTask(project, dsl, sfg)
-        }
-    }
-
-    void addMultiFileGenTask(Project project, DslExtension dsl, MultiFileGeneratorExtension ext) {
+    TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, DslExtension dsl, MultiFileConfig ext) {
         String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+
         project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
             void execute(FilesGeneratorTask t) {
@@ -100,8 +98,9 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         })
     }
 
-    void addSingleFileGenTask(Project project, DslExtension dsl, SingleFileGeneratorExtension ext) {
+    TaskProvider<FileGeneratorTask> addSingleFileGenTask(Project project, DslExtension dsl, SingleFileConfig ext) {
         String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+
         project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
             void execute(FileGeneratorTask t) {

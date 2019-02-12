@@ -9,6 +9,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.compile.JavaCompile
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.tasks.GeneratorBaseTask
 
@@ -37,12 +38,9 @@ class DslPlugin implements Plugin<Project> {
             main.resources.srcDirs dsl.outputDir.dir("resources")
 
             // Configure compileJava task to depend on our tasks
-            project.tasks.named("compileJava").configure(new Action<Task>() {
-                @Override
-                void execute(Task t) {
-                    t.dependsOn = project.tasks.withType(GeneratorBaseTask)
-                }
-            })
+            project.tasks.named("compileJava").configure { JavaCompile jc ->
+                jc.dependsOn project.tasks.withType(GeneratorBaseTask)
+            }
         }
     }
 

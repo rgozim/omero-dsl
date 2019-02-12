@@ -6,7 +6,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.Property
 
 @CompileStatic
-class OperationExtension {
+class BaseFileConfig {
 
     final String name
 
@@ -16,7 +16,7 @@ class OperationExtension {
 
     final Property<File> template
 
-    OperationExtension(String name, Project project) {
+    BaseFileConfig(String name, Project project) {
         this.name = name
         this.project = project
         this.omeXmlFiles = project.files()

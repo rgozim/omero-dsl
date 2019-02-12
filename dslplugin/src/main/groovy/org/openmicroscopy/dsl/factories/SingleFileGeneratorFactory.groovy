@@ -3,10 +3,10 @@ package org.openmicroscopy.dsl.factories
 import groovy.transform.CompileStatic
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
-import org.openmicroscopy.dsl.extensions.SingleFileGeneratorExtension
+import org.openmicroscopy.dsl.extensions.SingleFileConfig
 
 @CompileStatic
-class SingleFileGeneratorFactory implements NamedDomainObjectFactory<SingleFileGeneratorExtension> {
+class SingleFileGeneratorFactory implements NamedDomainObjectFactory<SingleFileConfig> {
     final Project project;
 
     SingleFileGeneratorFactory(Project project) {
@@ -14,8 +14,8 @@ class SingleFileGeneratorFactory implements NamedDomainObjectFactory<SingleFileG
     }
 
     @Override
-    SingleFileGeneratorExtension create(String name) {
-        return new SingleFileGeneratorExtension(name, project)
+    SingleFileConfig create(String name) {
+        return new SingleFileConfig(name, project)
     }
 }
 

@@ -5,11 +5,11 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Property
 
 @CompileStatic
-class SingleFileGeneratorExtension extends OperationExtension {
+class SingleFileConfig extends BaseFileConfig {
 
     final Property<File> outputFile
 
-    SingleFileGeneratorExtension(String name, Project project) {
+    SingleFileConfig(String name, Project project) {
         super(name, project)
         outputFile = project.objects.property(File)
     }

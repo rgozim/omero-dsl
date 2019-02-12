@@ -3,10 +3,10 @@ package org.openmicroscopy.dsl.factories
 import groovy.transform.CompileStatic
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
-import org.openmicroscopy.dsl.extensions.MultiFileGeneratorExtension
+import org.openmicroscopy.dsl.extensions.MultiFileConfig
 
 @CompileStatic
-class MultiFileGeneratorFactory implements NamedDomainObjectFactory<MultiFileGeneratorExtension> {
+class MultiFileGeneratorFactory implements NamedDomainObjectFactory<MultiFileConfig> {
     final Project project
 
     MultiFileGeneratorFactory(Project project) {
@@ -14,8 +14,8 @@ class MultiFileGeneratorFactory implements NamedDomainObjectFactory<MultiFileGen
     }
 
     @Override
-    MultiFileGeneratorExtension create(String name) {
-        return new MultiFileGeneratorExtension(name, project)
+    MultiFileConfig create(String name) {
+        return new MultiFileConfig(name, project)
     }
 }
 
