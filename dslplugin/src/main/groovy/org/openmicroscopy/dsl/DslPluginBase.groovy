@@ -87,13 +87,15 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
             void execute(FilesGeneratorTask t) {
-                t.group = GROUP
-                t.formatOutput = ext.formatOutput
-                t.velocityConfig = dsl.velocity
-                t.omeXmlFiles = dsl.omeXmlFiles + ext.omeXmlFiles
-                t.outputDir = getOutputDirProvider(dsl.outputDir, ext.outputDir)
-                t.template = findTemplateProvider(dsl.templates, ext.template)
-                t.databaseType = findDatabaseTypeProvider(dsl.databaseTypes, dsl.database)
+                t.with {
+                    group = GROUP
+                    formatOutput.set(ext.formatOutput)
+                    velocityConfig.set(dsl.velocity.data)
+                    outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
+                    template.set(findTemplateProvider(dsl.templates, ext.template))
+                    databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
+                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
+                }
             }
         })
     }
@@ -104,12 +106,14 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
             void execute(FileGeneratorTask t) {
-                t.group = GROUP
-                t.velocityConfig = dsl.velocity
-                t.omeXmlFiles = dsl.omeXmlFiles + ext.omeXmlFiles
-                t.outputFile = getOutputFileProvider(dsl.outputDir, ext.outputFile)
-                t.template = findTemplateProvider(dsl.templates, ext.template)
-                t.databaseType = findDatabaseTypeProvider(dsl.databaseTypes, dsl.database)
+                t.with {
+                    group = GROUP
+                    velocityConfig.set(dsl.velocity.data)
+                    outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
+                    template.set(findTemplateProvider(dsl.templates, ext.template))
+                    databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
+                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
+                }
             }
         })
     }
