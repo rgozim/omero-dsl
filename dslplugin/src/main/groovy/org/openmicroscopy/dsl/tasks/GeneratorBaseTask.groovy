@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
-import org.gradle.api.Transformer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFile
@@ -34,17 +33,13 @@ abstract class GeneratorBaseTask extends DefaultTask {
 
     private static final Logger Log = Logging.getLogger(GeneratorBaseTask)
 
-    @InputFile
-    final RegularFileProperty template = project.objects.fileProperty()
+    private final RegularFileProperty template = project.objects.fileProperty()
 
-    @InputFile
-    final RegularFileProperty databaseType = project.objects.fileProperty()
+    private final RegularFileProperty databaseType = project.objects.fileProperty()
 
-    @Input
-    @Optional
-    final Property<Properties> velocityConfig = project.objects.property(Properties)
+    private final Property<Properties> velocityConfig = project.objects.property(Properties)
 
-    final ConfigurableFileCollection mappingFiles = project.files()
+    private final ConfigurableFileCollection mappingFiles = project.files()
 
     private final PatternFilterable omeXmlPatternSet
 
@@ -92,15 +87,33 @@ abstract class GeneratorBaseTask extends DefaultTask {
     @Internal
     Provider<String> getProfile() {
         // Determine database type
-        databaseType.flatMap(new Transformer<Provider<String>, RegularFile>() {
-            @Override
-            Provider<String> transform(RegularFile t) {
-                String fileName = t.asFile.name
-                Property<String> p = project.objects.property(String)
-                p.set(fileName.substring(0, fileName.lastIndexOf("-")))
-                p
-            }
-        })
+        databaseType.flatMap { RegularFile file ->
+            String fileName = file.asFile.name
+            Property<String> p = project.objects.property(String)
+            p.set(fileName.substring(0, fileName.lastIndexOf("-")))
+            p
+        }
+    }
+
+    @InputFile
+    RegularFileProperty getTemplate() {
+        return template
+    }
+
+    @InputFile
+    RegularFileProperty getDatabaseType() {
+        return databaseType
+    }
+
+    @Input
+    @Optional
+    Property<Properties> getVelocityConfig() {
+        return velocityConfig
+    }
+
+    @Internal
+    ConfigurableFileCollection getMappingFiles() {
+        return mappingFiles
     }
 
 }

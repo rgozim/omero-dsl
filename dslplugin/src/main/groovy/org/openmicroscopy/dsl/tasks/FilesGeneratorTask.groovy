@@ -2,14 +2,10 @@ package org.openmicroscopy.dsl.tasks
 
 import groovy.transform.CompileStatic
 import groovy.transform.Internal
-import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
-import org.gradle.api.Transformer
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.OutputDirectory
 
 @SuppressWarnings("UnstableApiUsage")
@@ -20,14 +16,12 @@ class FilesGeneratorTask extends GeneratorBaseTask {
      * Set this when you want to generate multiple files
      * Note: also requires setting {@link this.formatOutput}
      */
-    @OutputDirectory
-    final DirectoryProperty outputDir = project.objects.directoryProperty()
+    private final DirectoryProperty outputDir = project.objects.directoryProperty()
 
     /**
      * Default callback returns SemanticType.shortName
      */
-    @Internal
-    final Property<MultiFileGenerator.FileNameFormatter> formatOutput =
+    private final Property<MultiFileGenerator.FileNameFormatter> formatOutput =
             project.objects.property(MultiFileGenerator.FileNameFormatter)
 
     @Override
@@ -35,6 +29,16 @@ class FilesGeneratorTask extends GeneratorBaseTask {
         return new MultiFileGenerator.Builder()
                 .setOutputDir(outputDir.get().asFile)
                 .setFileNameFormatter(formatOutput.get())
+    }
+
+    @OutputDirectory
+    DirectoryProperty getOutputDir() {
+        return this.outputDir
+    }
+
+    @Internal
+    Property<MultiFileGenerator.FileNameFormatter> getFormatOutput() {
+        return this.formatOutput
     }
 
 }

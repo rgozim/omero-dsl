@@ -13,8 +13,7 @@ class FileGeneratorTask extends GeneratorBaseTask {
     /**
      * Set this when you only want to generate a single file
      */
-    @OutputFile
-    final RegularFileProperty outputFile = project.objects.fileProperty()
+    private final RegularFileProperty outputFile = project.objects.fileProperty()
 
     @Override
     protected Generator.Builder createGenerator() {
@@ -22,4 +21,8 @@ class FileGeneratorTask extends GeneratorBaseTask {
                 .setOutFile(outputFile.get().asFile)
     }
 
+    @OutputFile
+    RegularFileProperty getOutputFile() {
+        return outputFile
+    }
 }
