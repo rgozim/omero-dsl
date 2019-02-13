@@ -1,15 +1,31 @@
 package org.openmicroscopy.dsl
 
+import groovy.transform.CompileStatic
 import org.gradle.api.GradleException
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.util.PatternSet
 
+@SuppressWarnings("UnstableApiUsage")
+@CompileStatic
 abstract class DslBase {
 
     private static final Logger Log = Logging.getLogger(DslBase)
+
+    static Provider<Directory> getOutputDirProvider(DirectoryProperty baseDir, Property<File> childDir) {
+        childDir.flatMap { File f -> baseDir.dir(f.toString()) }
+    }
+
+    static Provider<RegularFile> getOutputFileProvider(DirectoryProperty baseDir, Property<File> childFile) {
+        childFile.flatMap { File f -> baseDir.file(f.toString()) }
+    }
 
     static File findDatabaseType(FileCollection collection, String type) {
         if (!type) {
