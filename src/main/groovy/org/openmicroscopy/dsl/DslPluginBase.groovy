@@ -4,8 +4,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -31,8 +29,6 @@ import javax.inject.Inject
 class DslPluginBase extends DslBase implements Plugin<Project> {
 
     public static final String GROUP = "omero-dsl"
-
-    public static final String EXTENSION_NAME_DSL = "dsl"
 
     public static final String TASK_PREFIX_GENERATE = "generate"
 
@@ -104,22 +100,10 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
                     databaseType.set(findDatabaseType(dsl.databaseTypes, dsl.name))
                     template.set(findTemplateProvider(dsl.templates, ext.template))
                     outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
-
-
                     mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
                 }
             }
         })
-    }
-
-
-
-    Provider<RegularFile> findDatabaseTypeProvider(FileCollection collection, Property<String> type) {
-        type.map { String t ->
-            RegularFileProperty result = objectFactory.fileProperty()
-            result.set(findDatabaseType(collection, type.get()))
-            result.get()
-        }
     }
 
     Provider<RegularFile> findTemplateProvider(FileCollection collection, Property<File> file) {

@@ -107,8 +107,4 @@ class DslExtension {
         this.outputDir.set(dir)
     }
 
-    void database(String db) {
-        this.database.set(db)
-    }
-
 }
