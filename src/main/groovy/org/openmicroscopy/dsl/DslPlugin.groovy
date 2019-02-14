@@ -8,7 +8,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.JavaCompile
-import org.openmicroscopy.dsl.extensions.DslExtension
+import org.openmicroscopy.dsl.extensions.VariantExtension
 import org.openmicroscopy.dsl.tasks.GeneratorBaseTask
 
 @CompileStatic
@@ -18,12 +18,12 @@ class DslPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(DslPluginBase)
 
-        DslExtension dsl = project.extensions.getByType(DslExtension)
+        VariantExtension dsl = project.extensions.getByType(VariantExtension)
 
         configureForJavaPlugin(project, dsl)
     }
 
-    void configureForJavaPlugin(Project project, DslExtension dsl) {
+    void configureForJavaPlugin(Project project, VariantExtension dsl) {
         project.plugins.withType(JavaPlugin) { JavaPlugin java ->
             // Configure default outputDir
             JavaPluginConvention javaConvention =

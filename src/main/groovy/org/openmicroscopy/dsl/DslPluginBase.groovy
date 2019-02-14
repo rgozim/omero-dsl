@@ -18,17 +18,21 @@ import org.openmicroscopy.dsl.extensions.BaseFileConfig
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileConfig
 import org.openmicroscopy.dsl.extensions.SingleFileConfig
+import org.openmicroscopy.dsl.extensions.VariantExtension
 import org.openmicroscopy.dsl.factories.DslFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
 
 import javax.inject.Inject
+import java.util.concurrent.Callable
 
 @SuppressWarnings("UnstableApiUsage")
 @CompileStatic
 class DslPluginBase extends DslBase implements Plugin<Project> {
 
-    public static final String GROUP = "omero-dsl"
+    public static final String GROUP = "omero-build"
+
+    public static final String EXTENSION_DSL = "dsl"
 
     public static final String TASK_PREFIX_GENERATE = "generate"
 
@@ -53,24 +57,26 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         project.extensions.extraProperties
                 .set("fileGeneratorConfigMap", fileGeneratorConfigMap)
 
-        def dslContainer = project.container(DslExtension, new DslFactory(project))
+        def buildContainer = project.container(VariantExtension, new DslFactory(project))
 
-        dslContainer.whenObjectAdded { DslExtension dsl ->
+        def dsl = project.extensions.create(EXTENSION_DSL, DslExtension, project, buildContainer)
 
-            dsl.multiFile.whenObjectAdded { MultiFileConfig mfg ->
-                def task = addMultiFileGenTask(project, dsl, mfg)
+        dsl.build.whenObjectAdded { VariantExtension variant ->
+
+            variant.multiFile.whenObjectAdded { MultiFileConfig mfg ->
+                def task = addMultiFileGenTask(project, variant, mfg)
                 fileGeneratorConfigMap.put(task.name, mfg)
             }
 
-            dsl.singleFile.whenObjectAdded { SingleFileConfig sfg ->
-                def task = addSingleFileGenTask(project, dsl, sfg)
+            variant.singleFile.whenObjectAdded { SingleFileConfig sfg ->
+                def task = addSingleFileGenTask(project, variant, sfg)
                 fileGeneratorConfigMap.put(task.name, sfg)
             }
         }
     }
 
-    TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, DslExtension dsl, MultiFileConfig ext) {
-        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.name.capitalize()
+    TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, VariantExtension variant, MultiFileConfig ext) {
+        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + variant.name.capitalize()
 
         project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
@@ -78,30 +84,41 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
                 t.with {
                     group = GROUP
                     formatOutput.set(ext.formatOutput)
-                    velocityConfig.set(dsl.velocity.data)
-                    outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
-                    template.set(findTemplateProvider(dsl.templates, ext.template))
-                    databaseType.set(findDatabaseType(dsl.databaseTypes, dsl.name))
-                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
+                    velocityConfig.set(variant.velocity.data)
+                    outputDir.set(getOutputDirProvider(variant.outputDir, ext.outputDir))
+                    template.set(findTemplateProvider(variant.templates, ext.template))
+                    databaseType.set(findDatabaseTypeProvider(variant.databaseTypes, variant.name))
+                    mappingFiles.from(variant.omeXmlFiles + ext.omeXmlFiles)
                 }
             }
         })
     }
 
-    TaskProvider<FileGeneratorTask> addSingleFileGenTask(Project project, DslExtension dsl, SingleFileConfig ext) {
-        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.name.capitalize()
+    TaskProvider<FileGeneratorTask> addSingleFileGenTask(Project project, VariantExtension variant, SingleFileConfig ext) {
+        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + variant.name.capitalize()
 
         project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
             void execute(FileGeneratorTask t) {
                 t.with {
                     group = GROUP
-                    velocityConfig.set(dsl.velocity.data)
-                    databaseType.set(findDatabaseType(dsl.databaseTypes, dsl.name))
-                    template.set(findTemplateProvider(dsl.templates, ext.template))
-                    outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
-                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
+                    velocityConfig.set(variant.velocity.data)
+                    outputFile.set(getOutputFileProvider(variant.outputDir, ext.outputFile))
+                    template.set(findTemplateProvider(variant.templates, ext.template))
+                    databaseType.set(findDatabaseTypeProvider(variant.databaseTypes, variant.name))
+                    mappingFiles.from(variant.omeXmlFiles + ext.omeXmlFiles)
                 }
+            }
+        })
+    }
+
+    Provider<RegularFile> findDatabaseTypeProvider(FileCollection collection, String database) {
+        providerFactory.provider(new Callable<RegularFile>() {
+            @Override
+            RegularFile call() throws Exception {
+                RegularFileProperty result = objectFactory.fileProperty()
+                result.set(findDatabaseType(collection, database))
+                result.get()
             }
         })
     }
