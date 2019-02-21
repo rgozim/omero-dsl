@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id "org.openmicroscopy.project" version "5.5.0-SNAPSHOT"
 }
 
 java {
@@ -11,7 +10,7 @@ java {
 dependencies {
     testImplementation("junit:junit:4.12")
 
-    api("commons-io:commons-io:2.6")
-    api("org.apache.velocity:velocity-engine-core:2.0")
-    implementation("org.slf4j:slf4j-api:1.8.0-beta2")
+    compile("commons-io:commons-io:2.6")
+    compile("org.apache.velocity:velocity-engine-core:2.0")
+    compile("org.slf4j:slf4j-api:1.8.0-beta2")
 }

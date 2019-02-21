@@ -61,10 +61,7 @@ class VelocityConfig {
     }
 
     void setCheckEmptyObjects(boolean emptyCheck) {
-        data.setProperty(
-                RuntimeConstants.CHECK_EMPTY_OBJECTS,
-                emptyCheck as String
-        )
+        data.setProperty(RuntimeConstants.CHECK_EMPTY_OBJECTS, emptyCheck as String)
     }
 
     void setErrorMsgStart(String msgStart) {

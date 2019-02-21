@@ -1,7 +1,9 @@
 plugins {
     id "groovy"
+    id "maven-publish"
     id "java-gradle-plugin"
-    id "org.openmicroscopy.project" version "5.5.0-SNAPSHOT"
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    // id "org.openmicroscopy.publishing" version "5.5.0-SNAPSHOT"
 }
 
 java {
@@ -27,3 +29,10 @@ gradlePlugin {
     }
 }
 
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+        }
+    }
+}
