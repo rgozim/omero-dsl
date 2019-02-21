@@ -1,7 +1,14 @@
-rootProject.name = 'omero-dsl-plugin'
-include 'dsl'
-include 'dslplugin'
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
 
-project(':dsl').projectDir = new File(rootDir, 'dsl')
-project(':dslplugin').projectDir = new File(rootDir, 'dslplugin')
+rootProject.name = "omero-dsl-plugin"
 
+include("dsl")
+include("dslplugin")
+
+project(":dsl").projectDir = new File(rootDir, "dsl")
+project(":dslplugin").projectDir = new File(rootDir, "dslplugin")

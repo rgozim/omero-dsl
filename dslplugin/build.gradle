@@ -1,35 +1,30 @@
 /* https://dzone.com/articles/debugging-gradle-plugins */
 plugins {
-    id 'groovy'
-    id 'java-gradle-plugin'
-    id 'maven-publish'
+    id "groovy"
+    id "java-gradle-plugin"
+    id "org.openmicroscopy.project" version "5.5.0-SNAPSHOT"
 }
 
-repositories {
-    mavenCentral()
-    mavenLocal()
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 dependencies {
     // We need this for the sax reader and type processor
-    compile project(":dsl")
+    implementation project(":dsl")
 
-    testImplementation('org.spockframework:spock-core:1.2-groovy-2.5') {
-        exclude module: 'groovy-all'
+    testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
+        exclude module: "groovy-all"
     }
-}
-test {
-    systemProperty 'resourcesDir', file('src/test/resources')
 }
 
 gradlePlugin {
     plugins {
         dslplugin {
-            id = 'org.openmicroscopy.dsl'
-            implementationClass = 'org.openmicroscopy.dsl.DslPlugin'
+            id = "org.openmicroscopy.dsl"
+            implementationClass = "org.openmicroscopy.dsl.DslPlugin"
         }
     }
 }
 
-
-apply from: "publish.gradle"
