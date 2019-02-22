@@ -6,9 +6,3 @@ pluginManagement {
 }
 
 rootProject.name = "omero-dsl-plugin"
-
-include("dsl")
-include("dslplugin")
-
-project(":dsl").projectDir = new File(rootDir, "dsl")
-project(":dslplugin").projectDir = new File(rootDir, "dslplugin")

@@ -1,8 +1,35 @@
 plugins {
-    id "idea"
+    id "groovy"
+    id "org.openmicroscopy.plugin-project" version "5.5.0-SNAPSHOT"
 }
 
-subprojects {
-    group = "org.openmicroscopy"
-    version = "5.5.0-SNAPSHOT"
+group = "org.openmicroscopy"
+version = "5.5.0-SNAPSHOT"
+
+repositories {
+    jcenter()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
+        exclude module: "groovy-all"
+    }
+
+    implementation("org.apache.velocity:velocity-engine-core:2.0")
+    implementation("commons-io:commons-io:2.6")
+    implementation("org.slf4j:slf4j-api:1.8.0-beta2")
+}
+
+gradlePlugin {
+    plugins {
+        dslplugin {
+            id = "org.openmicroscopy.dsl"
+            implementationClass = "org.openmicroscopy.dsl.DslPlugin"
+        }
+    }
 }
