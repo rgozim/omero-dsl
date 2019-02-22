@@ -30,12 +30,15 @@ task relocateShadowJar(type: ConfigureShadowRelocation) {
     target = tasks.shadowJar
 }
 
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
+tasks.shadowJar {
+    dependsOn tasks.relocateShadowJar
+    classifier = ""
+}
 
 publishing {
     publications {
-        shadow(MavenPublication) { pub ->
-            project.shadow.component(pub)
+        mavenPlugin(MavenPublication) { pub ->
+            shadow.component(pub)
             pub.artifactId = rootProject.name
         }
     }
