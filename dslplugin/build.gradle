@@ -1,9 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
 plugins {
     id "groovy"
     id "maven-publish"
-    id "java-gradle-plugin"
     id 'com.github.johnrengelman.shadow' version '4.0.4'
-    // id "org.openmicroscopy.publishing" version "5.5.0-SNAPSHOT"
+}
+
+repositories {
+    jcenter()
 }
 
 java {
@@ -12,27 +16,37 @@ java {
 }
 
 dependencies {
-    // We need this for the sax reader and type processor
     compile project(":dsl")
+
+    shadow localGroovy()
+    shadow gradleApi()
 
     testImplementation("org.spockframework:spock-core:1.2-groovy-2.5") {
         exclude module: "groovy-all"
     }
 }
 
-gradlePlugin {
-    plugins {
-        dslplugin {
-            id = "org.openmicroscopy.dsl"
-            implementationClass = "org.openmicroscopy.dsl.DslPlugin"
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowJar
+}
+
+tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
+publishing {
+    publications {
+        shadow(MavenPublication) { pub ->
+            project.shadow.component(pub)
+            pub.artifactId = rootProject.name
         }
     }
 }
 
-publishing {
-    publications {
-        shadow(MavenPublication) { publication ->
-            project.shadow.component(publication)
-        }
-    }
-}
+//gradlePlugin {
+//    plugins {
+//        dslplugin {
+//            id = "org.openmicroscopy.dsl"
+//            implementationClass = "org.openmicroscopy.dsl.DslPlugin"
+//        }
+//    }
+//}
+
