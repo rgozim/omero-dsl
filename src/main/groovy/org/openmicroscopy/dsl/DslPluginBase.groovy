@@ -10,15 +10,14 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
-import org.openmicroscopy.dsl.extensions.BaseFileConfig
-import org.openmicroscopy.dsl.extensions.DslExtension
-import org.openmicroscopy.dsl.extensions.MultiFileConfig
-import org.openmicroscopy.dsl.extensions.SingleFileConfig
-import org.openmicroscopy.dsl.extensions.VariantExtension
+import org.openmicroscopy.OmeroExtension
+import org.openmicroscopy.OmeroPlugin
+import org.openmicroscopy.dsl.extensions.*
 import org.openmicroscopy.dsl.factories.DslFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
@@ -52,16 +51,16 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        // Add the map to extra properties
-        // Access via project.fileGeneratorConfigMap
-        project.extensions.extraProperties.set("fileGeneratorConfigMap", fileGeneratorConfigMap)
+        // Apply omero plugin
+        project.plugins.apply(OmeroPlugin)
 
-        def buildContainer = project.container(VariantExtension, new DslFactory(project))
+        addGlobalConfigTasksMap(project)
 
-        def dsl = project.extensions.create(EXTENSION_DSL, DslExtension, project, buildContainer)
+        OmeroExtension omero = project.extensions.getByType(OmeroExtension)
+
+        DslExtension dsl = createDslExtensions(project, omero)
 
         dsl.build.whenObjectAdded { VariantExtension variant ->
-
             variant.multiFile.whenObjectAdded { MultiFileConfig mfg ->
                 def task = addMultiFileGenTask(project, variant, mfg)
                 fileGeneratorConfigMap.put(task.name, mfg)
@@ -72,6 +71,17 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
                 fileGeneratorConfigMap.put(task.name, sfg)
             }
         }
+    }
+
+    void addGlobalConfigTasksMap(Project project) {
+        // Add the map to extra properties
+        // Access via project.fileGeneratorConfigMap
+        project.extensions.extraProperties.set("fileGeneratorConfigMap", fileGeneratorConfigMap)
+    }
+
+    DslExtension createDslExtensions(Project project, OmeroExtension omero) {
+        def buildContainer = project.container(VariantExtension, new DslFactory(project))
+        (omero as ExtensionAware).extensions.create(EXTENSION_DSL, DslExtension, project, buildContainer)
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, VariantExtension variant, MultiFileConfig ext) {
