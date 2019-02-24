@@ -5,6 +5,7 @@ import ome.dsl.SemanticType
 import ome.dsl.velocity.MultiFileGenerator
 import org.gradle.api.Project
 import org.gradle.api.Transformer
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.openmicroscopy.dsl.utils.SemanticTypeClosure
 import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
@@ -12,13 +13,13 @@ import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
 @CompileStatic
 class MultiFileConfig extends BaseFileConfig {
 
-    final Property<File> outputDir
+    final DirectoryProperty outputDir
 
     final Property<MultiFileGenerator.FileNameFormatter> formatOutput
 
     MultiFileConfig(String name, Project project) {
         super(name, project)
-        this.outputDir = project.objects.property(File)
+        this.outputDir = project.objects.directoryProperty()
         this.formatOutput = project.objects.property(MultiFileGenerator.FileNameFormatter)
     }
 

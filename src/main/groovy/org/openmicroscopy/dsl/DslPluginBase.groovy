@@ -54,8 +54,7 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     void apply(Project project) {
         // Add the map to extra properties
         // Access via project.fileGeneratorConfigMap
-        project.extensions.extraProperties
-                .set("fileGeneratorConfigMap", fileGeneratorConfigMap)
+        project.extensions.extraProperties.set("fileGeneratorConfigMap", fileGeneratorConfigMap)
 
         def buildContainer = project.container(VariantExtension, new DslFactory(project))
 
@@ -84,8 +83,8 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
                 t.with {
                     group = GROUP
                     formatOutput.set(ext.formatOutput)
+                    outputDir.set(ext.outputDir)
                     velocityConfig.set(variant.velocity.data)
-                    outputDir.set(getOutputDirProvider(variant.outputDir, ext.outputDir))
                     template.set(findTemplateProvider(variant.templates, ext.template))
                     databaseType.set(findDatabaseTypeProvider(variant.databaseTypes, variant.name))
                     mappingFiles.from(variant.omeXmlFiles + ext.omeXmlFiles)
@@ -102,8 +101,8 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
             void execute(FileGeneratorTask t) {
                 t.with {
                     group = GROUP
+                    outputFile.set(ext.outputFile)
                     velocityConfig.set(variant.velocity.data)
-                    outputFile.set(getOutputFileProvider(variant.outputDir, ext.outputFile))
                     template.set(findTemplateProvider(variant.templates, ext.template))
                     databaseType.set(findDatabaseTypeProvider(variant.databaseTypes, variant.name))
                     mappingFiles.from(variant.omeXmlFiles + ext.omeXmlFiles)
