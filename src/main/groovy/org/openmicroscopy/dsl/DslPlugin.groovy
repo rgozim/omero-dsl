@@ -33,11 +33,6 @@ class DslPlugin implements Plugin<Project> {
         configureForJavaPlugin(project, dsl)
     }
 
-    void applyBasePlugins(Project project) {
-        project.plugins.apply(OmeroPlugin)
-
-    }
-
     void configureForJavaPlugin(Project project, DslExtension dsl) {
         project.plugins.withType(JavaPlugin) { JavaPlugin java ->
             // Configure default outputDir

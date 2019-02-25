@@ -2,6 +2,7 @@ package org.openmicroscopy.dsl
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -17,7 +18,11 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
 import org.openmicroscopy.OmeroExtension
 import org.openmicroscopy.OmeroPlugin
-import org.openmicroscopy.dsl.extensions.*
+import org.openmicroscopy.dsl.extensions.BaseFileConfig
+import org.openmicroscopy.dsl.extensions.DslExtension
+import org.openmicroscopy.dsl.extensions.MultiFileConfig
+import org.openmicroscopy.dsl.extensions.SingleFileConfig
+import org.openmicroscopy.dsl.extensions.VariantExtension
 import org.openmicroscopy.dsl.factories.DslFactory
 import org.openmicroscopy.dsl.tasks.FileGeneratorTask
 import org.openmicroscopy.dsl.tasks.FilesGeneratorTask
@@ -58,9 +63,9 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
         OmeroExtension omero = project.extensions.getByType(OmeroExtension)
 
-        DslExtension dsl = createDslExtensions(project, omero)
+        def build = createDslExtensions(project, omero)
 
-        dsl.build.whenObjectAdded { VariantExtension variant ->
+        build.whenObjectAdded { VariantExtension variant ->
             variant.multiFile.whenObjectAdded { MultiFileConfig mfg ->
                 def task = addMultiFileGenTask(project, variant, mfg)
                 fileGeneratorConfigMap.put(task.name, mfg)
@@ -79,9 +84,14 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         project.extensions.extraProperties.set("fileGeneratorConfigMap", fileGeneratorConfigMap)
     }
 
-    DslExtension createDslExtensions(Project project, OmeroExtension omero) {
+    NamedDomainObjectContainer<VariantExtension> createDslExtensions(Project project, OmeroExtension omero) {
         def buildContainer = project.container(VariantExtension, new DslFactory(project))
-        (omero as ExtensionAware).extensions.create(EXTENSION_DSL, DslExtension, project, buildContainer)
+        (omero as ExtensionAware).extensions.add("build", buildContainer)
+        return buildContainer
+    }
+
+    void configureOmeroExtension(OmeroExtension omero) {
+
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, VariantExtension variant, MultiFileConfig ext) {
