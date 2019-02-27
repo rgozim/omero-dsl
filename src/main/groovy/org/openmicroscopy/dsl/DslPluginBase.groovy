@@ -16,11 +16,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
-import org.openmicroscopy.OmeroExtension
-import org.openmicroscopy.OmeroPlugin
 import org.openmicroscopy.dsl.extensions.BaseFileConfig
-import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileConfig
+import org.openmicroscopy.dsl.extensions.OmeroExtension
 import org.openmicroscopy.dsl.extensions.SingleFileConfig
 import org.openmicroscopy.dsl.extensions.VariantExtension
 import org.openmicroscopy.dsl.factories.DslFactory
@@ -36,15 +34,17 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
     public static final String GROUP = "omero-build"
 
-    public static final String EXTENSION_DSL = "dsl"
+    public static final String EXTENSION_BUILD = "build"
 
     public static final String TASK_PREFIX_GENERATE = "generate"
 
-    final Map<String, BaseFileConfig> fileGeneratorConfigMap = [:]
+    private final Map<String, BaseFileConfig> fileGeneratorConfigMap = [:]
 
     private final ObjectFactory objectFactory
 
     private final ProviderFactory providerFactory
+
+    private NamedDomainObjectContainer<VariantExtension> build
 
     private static final Logger Log = Logging.getLogger(DslPluginBase)
 
@@ -57,25 +57,29 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     @Override
     void apply(Project project) {
         // Apply omero plugin
-        project.plugins.apply(OmeroPlugin)
+        // project.plugins.apply(OmeroPlugin)
+
+        project.extensions.create("omero", OmeroExtension)
 
         addGlobalConfigTasksMap(project)
 
         OmeroExtension omero = project.extensions.getByType(OmeroExtension)
-
-        def build = createDslExtensions(project, omero)
-
-        build.whenObjectAdded { VariantExtension variant ->
-            variant.multiFile.whenObjectAdded { MultiFileConfig mfg ->
+        build = createDslExtensions(project, omero)
+        build.all { VariantExtension variant ->
+            variant.multiFile.configureEach { MultiFileConfig mfg ->
                 def task = addMultiFileGenTask(project, variant, mfg)
                 fileGeneratorConfigMap.put(task.name, mfg)
             }
 
-            variant.singleFile.whenObjectAdded { SingleFileConfig sfg ->
+            variant.singleFile.configureEach { SingleFileConfig sfg ->
                 def task = addSingleFileGenTask(project, variant, sfg)
                 fileGeneratorConfigMap.put(task.name, sfg)
             }
         }
+    }
+
+    NamedDomainObjectContainer<VariantExtension> getBuild() {
+        return build
     }
 
     void addGlobalConfigTasksMap(Project project) {
@@ -86,12 +90,8 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
     NamedDomainObjectContainer<VariantExtension> createDslExtensions(Project project, OmeroExtension omero) {
         def buildContainer = project.container(VariantExtension, new DslFactory(project))
-        (omero as ExtensionAware).extensions.add("build", buildContainer)
+        (omero as ExtensionAware).extensions.add(EXTENSION_BUILD, buildContainer)
         return buildContainer
-    }
-
-    void configureOmeroExtension(OmeroExtension omero) {
-
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, VariantExtension variant, MultiFileConfig ext) {

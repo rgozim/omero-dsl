@@ -20,7 +20,7 @@ dependencies {
         exclude module: "groovy-all"
     }
 
-    implementation("org.openmicroscopy:omero-artifact-plugin")
+    // implementation("org.openmicroscopy:omero-artifact-plugin")
     implementation("org.apache.velocity:velocity-engine-core:2.0")
     implementation("commons-io:commons-io:2.6")
     implementation("org.slf4j:slf4j-api:1.8.0-beta2")
