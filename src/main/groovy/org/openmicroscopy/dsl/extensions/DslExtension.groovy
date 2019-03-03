@@ -8,14 +8,11 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
-
 @CompileStatic
-class VariantExtension {
+class DslExtension {
 
     private final Project project
 
@@ -35,32 +32,30 @@ class VariantExtension {
 
     final DirectoryProperty outputDir
 
-    VariantExtension(String name,
-                     Project project,
-                     NamedDomainObjectContainer<MultiFileConfig> multiFile,
-                     NamedDomainObjectContainer<SingleFileConfig> singleFile) {
+    final ListProperty<String> databases
+
+    DslExtension(String name,
+                 Project project,
+                 NamedDomainObjectContainer<SingleFileConfig> singleFile,
+                 NamedDomainObjectContainer<MultiFileConfig> multiFile
+    ) {
         this.name = name
         this.project = project
-        this.multiFile = multiFile
         this.singleFile = singleFile
+        this.multiFile = multiFile
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
         this.outputDir = project.objects.directoryProperty()
-
-        // Set some conventions
-        this.outputDir.convention(project.layout.projectDirectory.dir("src/psql"))
-        this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
-        this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
-        this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))
-    }
-
-    void multiFile(Action<? super NamedDomainObjectContainer<MultiFileConfig>> action) {
-        action.execute(this.multiFile)
+        this.databases = project.objects.listProperty(String)
     }
 
     void singleFile(Action<? super NamedDomainObjectContainer<SingleFileConfig>> action) {
         action.execute(this.singleFile)
+    }
+
+    void multiFile(Action<? super NamedDomainObjectContainer<MultiFileConfig>> action) {
+        action.execute(this.multiFile)
     }
 
     void omeXmlFiles(FileCollection files) {
