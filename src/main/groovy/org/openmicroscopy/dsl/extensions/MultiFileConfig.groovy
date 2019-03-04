@@ -13,13 +13,13 @@ import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
 @CompileStatic
 class MultiFileConfig extends BaseFileConfig {
 
-    final DirectoryProperty outputDir
+    final Property<File> outputDir
 
     final Property<MultiFileGenerator.FileNameFormatter> formatOutput
 
     MultiFileConfig(String name, Project project) {
         super(name, project)
-        this.outputDir = project.objects.directoryProperty()
+        this.outputDir = project.objects.property(File)
         this.formatOutput = project.objects.property(MultiFileGenerator.FileNameFormatter)
     }
 

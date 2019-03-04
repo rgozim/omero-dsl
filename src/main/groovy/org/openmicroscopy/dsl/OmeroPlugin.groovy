@@ -1,5 +1,6 @@
 package org.openmicroscopy.dsl
 
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -9,37 +10,64 @@ import org.gradle.api.plugins.JavaLibraryPlugin
 import org.openmicroscopy.dsl.extensions.OmeroExtension
 
 class OmeroPlugin implements Plugin<Project> {
+
+    public static final String EXTENSION_OMERO = "omero"
+
     @Override
     void apply(Project project) {
         OmeroExtension omero =
-                project.extensions.create("omero", OmeroExtension)
+                project.extensions.create(EXTENSION_OMERO, OmeroExtension)
 
         // Create a configuration for every flavor
-        project.plugins.withType(JavaBasePlugin) {
-            omero.flavors.get().each { String flavor ->
-                final String flavorImplementation = flavor + "Implementation"
-                ConfigurationContainer configurations = project.getConfigurations()
-                Configuration compileConfiguration = configurations.findByName(flavorImplementation)
-                if (compileConfiguration == null) {
-                    configurations.create(flavorImplementation)
-                            .setVisible(false)
-                            .extendsFrom(configurations.getByName("implementation"))
-                            .setDescription("Implementation configuration for flavor $flavor")
-                }
+        omero.flavors.each { String flavor ->
+            ConfigurationContainer configs = project.getConfigurations()
 
-                project.plugins.withType(JavaLibraryPlugin) { JavaLibraryPlugin plugin ->
-                    final String flavorApi = flavor + "Api"
-                    compileConfiguration = configurations.findByName(flavorImplementation)
-                    if (compileConfiguration == null) {
-                        configurations.create(flavorApi)
-                                .setVisible(false)
-                                .extendsFrom(configurations.getByName("api"))
-                                .setDescription("API configuration for flavor $flavor")
-                    }
-                }
+            project.plugins.withType(JavaBasePlugin) {
+                String flavorImplementation = flavor + "Implementation"
+                findOrCreateConfig(configs, flavorImplementation)
+                        .setVisible(false)
+                        .extendsFrom(configs.findByName("implementation"))
+                        .setDescription("Configuration for flavor $flavor")
+            }
 
+            project.plugins.withType(JavaLibraryPlugin) {
+                String flavorApi = flavor + "Api"
+                findOrCreateConfig(configs, flavorApi)
+                        .setVisible(false)
+                        .extendsFrom(configs.findByName("api"))
+                        .setDescription("Configuration for flavor $flavor")
             }
         }
+
+//        omero.flavors.each { String flavor ->
+//            // Create source sets for flavors
+//            project.plugins.withType(JavaBasePlugin) {
+//                // Configure default outputDir
+//                JavaPluginConvention javaConvention =
+//                        project.convention.getPlugin(JavaPluginConvention)
+//
+//                javaConvention.sourceSets.create(flavor, new Action<SourceSet>() {
+//                    @Override
+//                    void execute(SourceSet t) {
+//                        t.java {
+//                            srcDirs = ["src/$flavor/java"]
+//                        }
+//                        t.resources {
+//                            srcDirs = ["src/$flavor/resources"]
+//                        }
+//                    }
+//                })
+//            }
+//        }
     }
+
+    Configuration findOrCreateConfig(ConfigurationContainer configs, String configName) {
+        Configuration config = configs.findByName(configName)
+        if (config == null) {
+            configs.create(configName)
+        }
+        return config
+    }
+
 }
 

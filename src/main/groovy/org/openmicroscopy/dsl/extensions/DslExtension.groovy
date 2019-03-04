@@ -11,18 +11,20 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 
+import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
+import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
+import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
+
 @CompileStatic
 class DslExtension {
 
     private final Project project
 
-    final String name
-
     final VelocityConfig velocity = new VelocityConfig()
 
-    final NamedDomainObjectContainer<MultiFileConfig> multiFile
-
     final NamedDomainObjectContainer<SingleFileConfig> singleFile
+
+    final NamedDomainObjectContainer<MultiFileConfig> multiFile
 
     final ConfigurableFileCollection omeXmlFiles
 
@@ -34,12 +36,10 @@ class DslExtension {
 
     final ListProperty<String> databases
 
-    DslExtension(String name,
-                 Project project,
+    DslExtension(Project project,
                  NamedDomainObjectContainer<SingleFileConfig> singleFile,
                  NamedDomainObjectContainer<MultiFileConfig> multiFile
     ) {
-        this.name = name
         this.project = project
         this.singleFile = singleFile
         this.multiFile = multiFile
@@ -48,6 +48,13 @@ class DslExtension {
         this.templates = project.files()
         this.outputDir = project.objects.directoryProperty()
         this.databases = project.objects.listProperty(String)
+
+        // Set some conventions
+        this.databases.convention(["psql"])
+        this.outputDir.convention(project.layout.projectDirectory.dir("src/generated"))
+        this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
+        this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
+        this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))
     }
 
     void singleFile(Action<? super NamedDomainObjectContainer<SingleFileConfig>> action) {
@@ -100,6 +107,14 @@ class DslExtension {
 
     void setOutputDir(File dir) {
         this.outputDir.set(dir)
+    }
+
+    void databases(String... databases) {
+        this.databases.addAll(databases)
+    }
+
+    void setDatabases(Iterable<String> databases) {
+        this.databases.set(databases)
     }
 
 }

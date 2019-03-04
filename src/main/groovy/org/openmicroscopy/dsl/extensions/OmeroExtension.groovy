@@ -1,22 +1,19 @@
 package org.openmicroscopy.dsl.extensions
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
 
 import javax.inject.Inject
 
 class OmeroExtension {
 
-    private final ListProperty<String> flavors
+    private List<String> flavors
 
     @Inject
-    OmeroExtension(ObjectFactory objectFactory, NamedDomainObjectContainer<DslExtension> build) {
-        this.flavors = objectFactory.listProperty(String)
-        this.build = build
+    OmeroExtension(ObjectFactory objectFactory) {
+        this.flavors = []
     }
 
-    ListProperty<String> getFlavors() {
+    List<String> getFlavors() {
         return flavors
     }
 
@@ -25,7 +22,7 @@ class OmeroExtension {
     }
 
     void setFlavors(Iterable<String> flavors) {
-        this.flavors.set(flavors)
+        this.flavors = flavors.asList()
     }
 
     // Add DSL

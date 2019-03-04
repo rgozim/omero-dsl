@@ -2,17 +2,16 @@ package org.openmicroscopy.dsl.extensions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 
 @CompileStatic
 class SingleFileConfig extends BaseFileConfig {
 
-    final RegularFileProperty outputFile
+    final Property<File> outputFile
 
     SingleFileConfig(String name, Project project) {
         super(name, project)
-        outputFile = project.objects.fileProperty()
+        outputFile = project.objects.property(File)
     }
 
     void outputFile(String file) {
