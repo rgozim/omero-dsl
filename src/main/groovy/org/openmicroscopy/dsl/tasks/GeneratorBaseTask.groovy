@@ -12,14 +12,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -63,8 +56,8 @@ abstract class GeneratorBaseTask extends DefaultTask {
         builder.velocityEngine = ve
         builder.template = template.get().asFile
         builder.omeXmlFiles = getOmeXmlFiles()
-        builder.databaseTypes = getDatabaseTypes()
-        builder.profile = getProfile()
+        builder.databaseTypes = getDatabaseTypes().get()
+        builder.profile = getProfile().get()
         builder.build().call()
     }
 
@@ -78,20 +71,20 @@ abstract class GeneratorBaseTask extends DefaultTask {
     }
 
     @Internal
-    Properties getDatabaseTypes() {
-        Properties databaseTypeProps = new Properties()
-        databaseType.get().asFile.withInputStream { databaseTypeProps.load(it) }
-        databaseTypeProps
+    Provider<Properties> getDatabaseTypes() {
+        databaseType.map { RegularFile file ->
+            Properties databaseTypeProps = new Properties()
+            file.asFile.withInputStream { databaseTypeProps.load(it) }
+            databaseTypeProps
+        }
     }
 
     @Internal
     Provider<String> getProfile() {
         // Determine database type
-        databaseType.flatMap { RegularFile file ->
+        databaseType.map { RegularFile file ->
             String fileName = file.asFile.name
-            Property<String> p = project.objects.property(String)
-            p.set(fileName.substring(0, fileName.lastIndexOf("-")))
-            p
+            fileName.substring(0, fileName.lastIndexOf("-"))
         }
     }
 
