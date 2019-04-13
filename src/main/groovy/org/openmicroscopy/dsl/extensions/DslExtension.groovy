@@ -8,7 +8,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
@@ -22,9 +22,9 @@ class DslExtension {
 
     final VelocityConfig velocity = new VelocityConfig()
 
-    final NamedDomainObjectContainer<SingleFileConfig> singleFile
-
     final NamedDomainObjectContainer<MultiFileConfig> multiFile
+
+    final NamedDomainObjectContainer<SingleFileConfig> singleFile
 
     final ConfigurableFileCollection omeXmlFiles
 
@@ -32,26 +32,25 @@ class DslExtension {
 
     final ConfigurableFileCollection templates
 
+    final Property<String> database
+
     final DirectoryProperty outputDir
 
-    final ListProperty<String> databases
-
     DslExtension(Project project,
-                 NamedDomainObjectContainer<SingleFileConfig> singleFile,
-                 NamedDomainObjectContainer<MultiFileConfig> multiFile
-    ) {
+                 NamedDomainObjectContainer<MultiFileConfig> multiFile,
+                 NamedDomainObjectContainer<SingleFileConfig> singleFile) {
         this.project = project
-        this.singleFile = singleFile
         this.multiFile = multiFile
+        this.singleFile = singleFile
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
+        this.database = project.objects.property(String)
         this.outputDir = project.objects.directoryProperty()
-        this.databases = project.objects.listProperty(String)
 
         // Set some conventions
-        this.databases.convention(["psql"])
-        this.outputDir.convention(project.layout.projectDirectory.dir("src/generated"))
+        this.database.convention("psql")
+        this.outputDir.convention(project.layout.projectDirectory.dir("src/psql"))
         this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
         this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
         this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))

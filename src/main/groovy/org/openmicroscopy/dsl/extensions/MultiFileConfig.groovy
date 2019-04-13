@@ -5,7 +5,6 @@ import ome.dsl.SemanticType
 import ome.dsl.velocity.MultiFileGenerator
 import org.gradle.api.Project
 import org.gradle.api.Transformer
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.openmicroscopy.dsl.utils.SemanticTypeClosure
 import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
