@@ -18,13 +18,8 @@ import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
 @CompileStatic
 class DslExtension {
 
-    private final Project project
 
     final VelocityConfig velocity = new VelocityConfig()
-
-    final NamedDomainObjectContainer<MultiFileConfig> multiFile
-
-    final NamedDomainObjectContainer<SingleFileConfig> singleFile
 
     final ConfigurableFileCollection omeXmlFiles
 
@@ -40,8 +35,7 @@ class DslExtension {
                  NamedDomainObjectContainer<MultiFileConfig> multiFile,
                  NamedDomainObjectContainer<SingleFileConfig> singleFile) {
         this.project = project
-        this.multiFile = multiFile
-        this.singleFile = singleFile
+
         this.omeXmlFiles = project.files()
         this.databaseTypes = project.files()
         this.templates = project.files()
