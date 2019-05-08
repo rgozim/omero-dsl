@@ -77,15 +77,14 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
         // Add the map to extra properties
         // Access via project.fileGeneratorConfigMap
-        project.extensions.extraProperties
-                .set("fileGeneratorConfigMap", fileGeneratorConfigMap)
+        project.extensions.extraProperties.set("fileGeneratorConfigMap", fileGeneratorConfigMap)
 
-        dsl.multiFile.whenObjectAdded { MultiFileConfig mfg ->
+        dsl.multiFile.configureEach { MultiFileConfig mfg ->
             def task = addMultiFileGenTask(project, dsl, mfg)
             fileGeneratorConfigMap.put(task.name, mfg)
         }
 
-        dsl.singleFile.whenObjectAdded { SingleFileConfig sfg ->
+        dsl.singleFile.configureEach { SingleFileConfig sfg ->
             def task = addSingleFileGenTask(project, dsl, sfg)
             fileGeneratorConfigMap.put(task.name, sfg)
         }
@@ -102,7 +101,7 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(Project project, DslExtension dsl, MultiFileConfig ext) {
-        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+        String taskName = makeDslTaskName(ext.name, dsl.database.get())
 
         project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
@@ -121,7 +120,7 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FileGeneratorTask> addSingleFileGenTask(Project project, DslExtension dsl, SingleFileConfig ext) {
-        String taskName = TASK_PREFIX_GENERATE + ext.name.capitalize() + dsl.database.get().capitalize()
+        String taskName = makeDslTaskName(ext.name, dsl.database.get())
 
         project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
@@ -160,6 +159,10 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
             result.set(findTemplate(collection, f))
             result.get()
         }
+    }
+
+    static String makeDslTaskName(String name, String databaseType) {
+        TASK_PREFIX_GENERATE + name.capitalize() + databaseType.capitalize()
     }
 
 }

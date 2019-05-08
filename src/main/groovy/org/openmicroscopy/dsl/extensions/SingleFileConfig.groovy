@@ -23,6 +23,7 @@ package org.openmicroscopy.dsl.extensions
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 
 @CompileStatic
 class SingleFileConfig extends BaseFileConfig {
@@ -47,6 +48,10 @@ class SingleFileConfig extends BaseFileConfig {
     }
 
     void setOutputFile(File file) {
+        outputFile.set(file)
+    }
+
+    void setOutputFile(Provider<? extends File> file) {
         outputFile.set(file)
     }
 
