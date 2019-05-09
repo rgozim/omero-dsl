@@ -52,8 +52,8 @@ class DslPlugin implements Plugin<Project> {
             SourceSet main =
                     javaConvention.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
 
-            main.java.srcDirs dsl.outputDir.dir("java")
-            main.resources.srcDirs dsl.outputDir.dir("resources")
+            main.java.srcDirs(dsl.outputDir.dir("java"))
+            main.resources.srcDirs(dsl.outputDir.dir("resources"))
 
             // Configure compileJava task to depend on our tasks
             project.tasks.named("compileJava").configure { JavaCompile jc ->
