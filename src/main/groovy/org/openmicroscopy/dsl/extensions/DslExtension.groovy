@@ -88,11 +88,11 @@ class DslExtension {
      * @param name
      * @return the name used for creating tasks from this extension
      */
-    Provider<String> makeDslTaskName(String name) {
+    Provider<String> createTaskName(String name) {
         project.providers.provider(new Callable<String>() {
             @Override
             String call() throws Exception {
-                return DslPluginBase.TASK_PREFIX_GENERATE + name.capitalize() + database.get()
+                return DslPluginBase.TASK_PREFIX_GENERATE + name.capitalize() + database.get().capitalize()
             }
         })
     }

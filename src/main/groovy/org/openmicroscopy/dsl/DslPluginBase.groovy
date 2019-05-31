@@ -73,12 +73,8 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
         this.project = project
 
         dsl = createDslExtension()
-        dsl.multiFile.configureEach { MultiFileConfig mfg ->
-            addMultiFileGenTask(mfg)
-        }
-        dsl.singleFile.configureEach { SingleFileConfig sfg ->
-            addSingleFileGenTask(sfg)
-        }
+        dsl.multiFile.configureEach { addMultiFileGenTask(it) }
+        dsl.singleFile.configureEach { addSingleFileGenTask(it) }
     }
 
     DslExtension createDslExtension() {
@@ -92,38 +88,34 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(MultiFileConfig ext) {
-        Provider<String> taskName = dsl.makeDslTaskName(ext.name)
+        Provider<String> taskName = dsl.createTaskName(ext.name)
 
         project.tasks.register(taskName.get(), FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
-            void execute(FilesGeneratorTask t) {
-                t.with {
-                    group = GROUP
-                    formatOutput.set(ext.formatOutput)
-                    velocityConfig.set(dsl.velocity.data)
-                    outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
-                    template.set(findTemplateProvider(dsl.templates, ext.template))
-                    databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
-                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
-                }
+            void execute(FilesGeneratorTask task) {
+                task.group = GROUP
+                task.formatOutput.set(ext.formatOutput)
+                task.velocityConfig.set(dsl.velocity.data)
+                task.outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
+                task.template.set(findTemplateProvider(dsl.templates, ext.template))
+                task.databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
+                task.mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
             }
         })
     }
 
     TaskProvider<FileGeneratorTask> addSingleFileGenTask(SingleFileConfig ext) {
-        Provider<String> taskName = dsl.makeDslTaskName(ext.name)
+        Provider<String> taskName = dsl.createTaskName(ext.name)
 
         project.tasks.register(taskName.get(), FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
-            void execute(FileGeneratorTask t) {
-                t.with {
-                    group = GROUP
-                    velocityConfig.set(dsl.velocity.data)
-                    outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
-                    template.set(findTemplateProvider(dsl.templates, ext.template))
-                    databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
-                    mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
-                }
+            void execute(FileGeneratorTask task) {
+                task.group = GROUP
+                task.velocityConfig.set(dsl.velocity.data)
+                task.outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
+                task.template.set(findTemplateProvider(dsl.templates, ext.template))
+                task.databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
+                task.mappingFiles.from(dsl.omeXmlFiles + ext.omeXmlFiles)
             }
         })
     }
