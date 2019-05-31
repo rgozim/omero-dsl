@@ -92,9 +92,9 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(MultiFileConfig ext) {
-        String taskName = makeDslTaskName(ext.name, dsl.database.get())
+        Provider<String> taskName = dsl.makeDslTaskName(ext.name)
 
-        project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
+        project.tasks.register(taskName.get(), FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
             void execute(FilesGeneratorTask t) {
                 t.with {
@@ -111,9 +111,9 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FileGeneratorTask> addSingleFileGenTask(SingleFileConfig ext) {
-        String taskName = makeDslTaskName(ext.name, dsl.database.get())
+        Provider<String> taskName = dsl.makeDslTaskName(ext.name)
 
-        project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
+        project.tasks.register(taskName.get(), FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
             void execute(FileGeneratorTask t) {
                 t.with {
@@ -150,10 +150,6 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
             result.set(findTemplate(collection, f))
             result.get()
         }
-    }
-
-    static String makeDslTaskName(String name, String databaseType) {
-        TASK_PREFIX_GENERATE + name.capitalize() + databaseType.capitalize()
     }
 
 }

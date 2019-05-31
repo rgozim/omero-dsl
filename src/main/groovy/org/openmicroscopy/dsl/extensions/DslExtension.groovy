@@ -30,6 +30,9 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.openmicroscopy.dsl.DslPluginBase
+
+import java.util.concurrent.Callable
 
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
@@ -74,6 +77,24 @@ class DslExtension {
         this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
         this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
         this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))
+    }
+
+    /**
+     * Creates a name for task created from this extension.
+     * It prefixes a string the beginning of {@param name} and appends {@code this.database}
+     *
+     * e.g. "combined" results in "generateCombinedPsql"
+     *
+     * @param name
+     * @return the name used for creating tasks from this extension
+     */
+    Provider<String> makeDslTaskName(String name) {
+        project.providers.provider(new Callable<String>() {
+            @Override
+            String call() throws Exception {
+                return DslPluginBase.TASK_PREFIX_GENERATE + name.capitalize() + database.get()
+            }
+        })
     }
 
     void multiFile(Action<? super NamedDomainObjectContainer<MultiFileConfig>> action) {
