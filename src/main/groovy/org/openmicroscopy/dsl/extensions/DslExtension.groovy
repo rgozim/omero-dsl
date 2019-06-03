@@ -73,7 +73,7 @@ class DslExtension {
 
         // Set some conventions
         this.database.convention("psql")
-        this.outputDir.convention(project.layout.projectDirectory.dir("build/psql"))
+        this.outputDir.convention(project.layout.buildDirectory.dir("psql"))
         this.omeXmlFiles.setFrom(project.fileTree(dir: "src/main/resources/mappings", include: PATTERN_OME_XML))
         this.databaseTypes.setFrom(project.fileTree(dir: "src/main/resources/properties", include: PATTERN_DB_TYPE))
         this.templates.setFrom(project.fileTree(dir: "src/main/resources/templates", include: PATTERN_TEMPLATE))
