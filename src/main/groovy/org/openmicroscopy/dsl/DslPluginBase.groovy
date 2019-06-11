@@ -24,11 +24,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.*
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -129,17 +125,26 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     Provider<RegularFile> findDatabaseTypeProvider(FileCollection collection, Property<String> type) {
-        type.map { String t ->
+        type.map { String database ->
             RegularFileProperty result = objectFactory.fileProperty()
-            result.set(findDatabaseType(collection, type.get()))
+            File file = new File("$database-types.$FileTypes.EXTENSION_DB_TYPE")
+            if (file.isAbsolute() && file.isFile()) {
+                result.set(file)
+            } else {
+                result.set(findInCollection(collection, file, FileTypes.PATTERN_DB_TYPE))
+            }
             result.get()
         }
     }
 
-    Provider<RegularFile> findTemplateProvider(FileCollection collection, Property<File> file) {
-        file.map { File f ->
+    Provider<RegularFile> findTemplateProvider(FileCollection collection, Property<File> fileProperty) {
+        fileProperty.map { File file ->
             RegularFileProperty result = objectFactory.fileProperty()
-            result.set(findTemplate(collection, f))
+            if (file.isAbsolute() && file.isFile()) {
+                result.set(file)
+            } else {
+                result.set(findInCollection(collection, file, FileTypes.PATTERN_TEMPLATE))
+            }
             result.get()
         }
     }
