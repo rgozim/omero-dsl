@@ -10,11 +10,19 @@ import java.nio.file.StandardCopyOption
 
 class DslSingleFileTest extends AbstractGoorvyTest {
 
+    File databaseTypesDir
+    File mappingsDir
+    File templatesDir
+
     def setup() {
+        databaseTypesDir = new File(projectDir, "src/main/resources/properties")
+        mappingsDir = new File(projectDir, "src/main/resources/mappings")
+        templatesDir = new File(projectDir, "src/main/resources/templates")
+
         writeSettingsFile()
-        copyDatabaseTypes()
-        copyOmeXmls()
-        copyTemplates()
+        copyDatabaseTypes(databaseTypesDir)
+        copyOmeXmls(mappingsDir)
+        copyTemplates(templatesDir)
     }
 
     def "Passes gradle tasks command"() {
@@ -25,7 +33,7 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         result.task(":tasks").outcome == TaskOutcome.SUCCESS
     }
 
-    def "Check copied files exist"() {
+    def "check copied files exist"() {
         buildFile << """
             task printFiles() {
                 doLast {
@@ -64,16 +72,44 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
     }
 
-    def "SingleFile overrides dsl outputDir when absolute"() {
+    def "passes full configuration"() {
         given:
-        File absFile = new File(projectDir, "example.txt")
-
         buildFile << """
             dsl {   
+                database = "psql"
+                outputDir = file("some/output/dir")
+                omeXmlFiles = fileTree(dir: "${mappingsDir}", include: "**/*.ome.xml")
+                databaseTypes = fileTree(dir: "${databaseTypesDir}", include: "**/*.properties")
+                templates = fileTree(dir: "${templatesDir}", include: "**/*.vm")
+                    
                 singleFile {
                     example {
                         template = "simple.vm"
-                        outputFile = "${absFile}"
+                        outputFile = "example.txt"
+                    }
+                }
+            }
+        """
+
+        when:
+        BuildResult result = build("generateExamplePsql")
+
+        then:
+        result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "outputDir overrides dsl.outputDir when absolute"() {
+        given:
+        Path dslOutputDir = Paths.get(projectDir.path, "build")
+        Path absFile = Paths.get(projectDir.path, "some/other/location/example.txt")
+        buildFile << """
+            dsl {   
+                outputDir = new File("${dslOutputDir}")
+
+                singleFile {
+                    example {
+                        template = "simple.vm"
+                        outputFile = new File("${absFile}")
                     }
                 }
             }
@@ -83,34 +119,51 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         build("generateExamplePsql")
 
         then:
-        absFile.exists()
+        Files.exists(absFile)
     }
 
-    def "SingleFile is relative to DslExtension outputDir when not absolute"() {
+    def "outputDir is relative to dsl.outputDir when not absolute"() {
+        given:
+        Path dslOutputDir = Paths.get(projectDir.path, "build")
+        Path relativeFile = Paths.get("example.txt")
+        Path expected = dslOutputDir.resolve(relativeFile)
+        buildFile << """
+            dsl {   
+                outputDir = new File("$dslOutputDir")
+            
+                singleFile {
+                    example {
+                        template = "simple.vm"
+                        outputFile = new File("${relativeFile}")
+                    }
+                }
+            }
+        """
 
+        when:
+        build("generateExamplePsql")
 
+        then:
+        Files.exists(expected)
     }
 
     private void writeSettingsFile() {
         settingsFile << groovySettingsFile()
     }
 
-    private void copyDatabaseTypes() {
-        Path targetDir = Paths.get(projectDir.path, "src/main/resources/properties")
+    private void copyDatabaseTypes(File outputDir) {
         Path psql = Paths.get(Paths.getResource("/psql-types.properties").toURI())
-        copyFile(psql, targetDir)
+        copyFile(psql, outputDir.toPath())
     }
 
-    private void copyOmeXmls() {
-        Path targetDir = Paths.get(projectDir.path, "src/main/resources/mappings")
+    private void copyOmeXmls(File outputDir) {
         Path type = Paths.get(Paths.getResource("/type.ome.xml").toURI())
-        copyFile(type, targetDir)
+        copyFile(type, outputDir.toPath())
     }
 
-    private void copyTemplates() {
-        Path targetDir = Paths.get(projectDir.path, "src/main/resources/templates")
+    private void copyTemplates(File outputDir) {
         Path type = Paths.get(Paths.getResource("/simple.vm").toURI())
-        copyFile(type, targetDir)
+        copyFile(type, outputDir.toPath())
     }
 
     private void copyFile(Path fileToCopy, Path targetDir) {

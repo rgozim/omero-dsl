@@ -34,9 +34,7 @@ import org.openmicroscopy.dsl.DslPluginBase
 
 import java.util.concurrent.Callable
 
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
-import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
+import static org.openmicroscopy.dsl.FileTypes.*
 
 @CompileStatic
 class DslExtension {
