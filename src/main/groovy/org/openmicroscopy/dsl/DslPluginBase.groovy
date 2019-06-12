@@ -126,13 +126,10 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
 
     Provider<RegularFile> findDatabaseTypeProvider(FileCollection collection, Property<String> type) {
         type.map { String database ->
-            RegularFileProperty result = objectFactory.fileProperty()
             File file = new File("$database-types.$FileTypes.EXTENSION_DB_TYPE")
-            if (file.isAbsolute() && file.isFile()) {
-                result.set(file)
-            } else {
-                result.set(findInCollection(collection, file, FileTypes.PATTERN_DB_TYPE))
-            }
+
+            RegularFileProperty result = objectFactory.fileProperty()
+            result.set(findInCollection(collection, file, FileTypes.PATTERN_DB_TYPE))
             result.get()
         }
     }

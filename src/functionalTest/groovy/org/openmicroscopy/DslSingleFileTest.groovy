@@ -1,6 +1,5 @@
 package org.openmicroscopy
 
-
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -42,19 +41,17 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         BuildResult result = build("printFiles")
 
         then:
-        println(result.output)
         result.output
     }
 
     def "Passes with minimal configuration on single file generation"() {
+        given:
         buildFile << """
             dsl {   
-                database = "psql"
-                
                 singleFile {
                     example {
-                        template = "api.vm"
-                        outputFile = "api.properties"
+                        template = "simple.vm"
+                        outputFile = "example.txt"
                     }
                 }
             }
@@ -65,6 +62,33 @@ class DslSingleFileTest extends AbstractGoorvyTest {
 
         then:
         result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "SingleFile overrides dsl outputDir when absolute"() {
+        given:
+        File absFile = new File(projectDir, "example.txt")
+
+        buildFile << """
+            dsl {   
+                singleFile {
+                    example {
+                        template = "simple.vm"
+                        outputFile = "${absFile}"
+                    }
+                }
+            }
+        """
+
+        when:
+        build("generateExamplePsql")
+
+        then:
+        absFile.exists()
+    }
+
+    def "SingleFile is relative to DslExtension outputDir when not absolute"() {
+
+
     }
 
     private void writeSettingsFile() {
@@ -85,7 +109,7 @@ class DslSingleFileTest extends AbstractGoorvyTest {
 
     private void copyTemplates() {
         Path targetDir = Paths.get(projectDir.path, "src/main/resources/templates")
-        Path type = Paths.get(Paths.getResource("/api.vm").toURI())
+        Path type = Paths.get(Paths.getResource("/simple.vm").toURI())
         copyFile(type, targetDir)
     }
 

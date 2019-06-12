@@ -1,30 +1,18 @@
 package org.openmicroscopy
 
-import org.gradle.api.Project
-import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+
 import org.openmicroscopy.dsl.extensions.DslExtension
 import org.openmicroscopy.dsl.extensions.MultiFileConfig
 import org.openmicroscopy.dsl.extensions.SingleFileConfig
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.factories.SingleFileGeneratorFactory
-import spock.lang.Specification
 
-class DslExtensionTest extends Specification {
-
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
-    Project project
-
-    def setup() {
-        project = ProjectBuilder.builder().build()
-    }
+class DslExtensionTest extends AbstractTest {
 
     def "Templates support multiple dirs"() {
         given:
-        def folderA = createFilesInFolder(testProjectDir.newFolder("A"))
-        def folderB = createFilesInFolder(testProjectDir.newFolder("B"))
+        def folderA = createFilesInFolder(temporaryFolder.newFolder("A"))
+        def folderB = createFilesInFolder(temporaryFolder.newFolder("B"))
 
         when:
         DslExtension dsl = createExtension()
@@ -37,11 +25,11 @@ class DslExtensionTest extends Specification {
 
     def "OmeXmlFiles support multiple dirs"() {
         given:
-        def folderA = createFilesInFolder(testProjectDir.newFolder("A"))
-        def folderB = createFilesInFolder(testProjectDir.newFolder("B"))
+        def folderA = createFilesInFolder(temporaryFolder.newFolder("A"))
+        def folderB = createFilesInFolder(temporaryFolder.newFolder("B"))
+        def dsl = createExtension()
 
         when:
-        def dsl = createExtension()
         dsl.omeXmlFiles project.fileTree(dir: folderA, include: '*.file')
         dsl.omeXmlFiles project.fileTree(dir: folderB, include: '*.file')
 
