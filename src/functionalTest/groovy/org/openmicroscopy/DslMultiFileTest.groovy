@@ -8,7 +8,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
-class DslSingleFileTest extends AbstractGoorvyTest {
+class DslMultiFileTest extends AbstractGoorvyTest {
 
     File databaseTypesDir
     File mappingsDir
@@ -25,14 +25,16 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         copyTemplates(templatesDir)
     }
 
-    def "can create single file output  with minimal configuration"() {
+    def "can create multiple files with minimal configuration"() {
         given:
         buildFile << """
             dsl {   
-                singleFile {
+                multiFile {
                     example {
-                        template = "single.vm"
-                        outputFile = "example.txt"
+                        template = "multi.vm"
+                        formatOutput = { st ->
+                            st.getShortname() + ".java"
+                        }   
                     }
                 }
             }
@@ -45,44 +47,27 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
     }
 
-    def "can create single file output with full user configuration"() {
+    def "can create multiple files output with full user configuration"() {
         given:
+        Path outputDir = Paths.get(projectDir.path, "build/full")
+        Path multiFileOutputDir = Paths.get("multi")
+        Path expectedFinalDir = outputDir.resolve(multiFileOutputDir)
+
         buildFile << """
             dsl {   
                 database = "psql"
-                outputDir = file("some/output/dir")
+                outputDir = file("${outputDir}")
                 omeXmlFiles = fileTree(dir: "${mappingsDir}", include: "**/*.ome.xml")
                 databaseTypes = fileTree(dir: "${databaseTypesDir}", include: "**/*.properties")
                 templates = fileTree(dir: "${templatesDir}", include: "**/*.vm")
                     
-                singleFile {
+                multiFile {
                     example {
-                        template = "single.vm"
-                        outputFile = "example.txt"
-                    }
-                }
-            }
-        """
-
-        when:
-        BuildResult result = build("generateExamplePsql")
-
-        then:
-        result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
-    }
-
-    def "outputFile overrides dsl.outputDir when absolute"() {
-        given:
-        Path dslOutputDir = Paths.get(projectDir.path, "build")
-        Path absFile = Paths.get(projectDir.path, "some/other/location/example.txt")
-        buildFile << """
-            dsl {   
-                outputDir = new File("${dslOutputDir}")
-
-                singleFile {
-                    example {
-                        template = "single.vm"
-                        outputFile = new File("${absFile}")
+                        outputDir = "${multiFileOutputDir}"
+                        template = "multi.vm"
+                        formatOutput = { st ->
+                            st.getShortname() + ".java"
+                        } 
                     }
                 }
             }
@@ -92,10 +77,35 @@ class DslSingleFileTest extends AbstractGoorvyTest {
         build("generateExamplePsql")
 
         then:
-        Files.exists(absFile)
+        Files.exists(expectedFinalDir)
+        Files.list(expectedFinalDir).count() > 1
     }
 
-    def "outputFile is relative to dsl.outputDir when not absolute"() {
+    def "outputDir overrides dsl.outputDir when absolute"() {
+        given:
+        Path dslOutputDir = Paths.get(projectDir.path, "build")
+        Path absDir = Paths.get(projectDir.path, "some/other/location")
+        buildFile << """
+            dsl {   
+                outputDir = new File("${dslOutputDir}")
+
+                multiFile {
+                    example {
+                        template = "multi.vm"
+                        outputDir = new File("${absDir}")
+                    }
+                }
+            }
+        """
+
+        when:
+        build("generateExamplePsql")
+
+        then:
+        Files.exists(absDir)
+    }
+
+    def "outputDir is relative to dsl.outputDir when not absolute"() {
         given:
         Path dslOutputDir = Paths.get(projectDir.path, "build")
         Path relativeFile = Paths.get("example.txt")
@@ -106,7 +116,7 @@ class DslSingleFileTest extends AbstractGoorvyTest {
             
                 singleFile {
                     example {
-                        template = "single.vm"
+                        template = "multi.vm"
                         outputFile = new File("${relativeFile}")
                     }
                 }
@@ -135,7 +145,7 @@ class DslSingleFileTest extends AbstractGoorvyTest {
     }
 
     private void copyTemplates(File outputDir) {
-        Path type = Paths.get(Paths.getResource("/single.vm").toURI())
+        Path type = Paths.get(Paths.getResource("/multi.vm").toURI())
         copyFile(type, outputDir.toPath())
     }
 

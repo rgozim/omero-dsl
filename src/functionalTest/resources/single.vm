@@ -1,0 +1,3 @@
+#foreach($type in $types)
+  ${type.shortname}
+#end

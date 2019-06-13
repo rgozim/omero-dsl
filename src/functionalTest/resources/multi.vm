@@ -1,0 +1,9 @@
+package ${type.package};
+
+public class ${type.shortname} {
+
+    public ${type.shortname} () {
+        /* do nothing */
+    }
+
+}

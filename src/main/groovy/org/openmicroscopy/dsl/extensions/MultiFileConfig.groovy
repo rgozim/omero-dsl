@@ -40,6 +40,9 @@ class MultiFileConfig extends BaseFileConfig {
         super(name, project)
         this.outputDir = project.objects.property(File)
         this.formatOutput = project.objects.property(MultiFileGenerator.FileNameFormatter)
+
+        // Default output dir is the name of the configuration (e.g. java, combined)
+        this.outputDir.convention(new File(name))
     }
 
     void outputDir(File dir) {
