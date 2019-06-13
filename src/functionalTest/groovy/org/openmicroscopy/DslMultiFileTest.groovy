@@ -47,7 +47,7 @@ class DslMultiFileTest extends AbstractGoorvyTest {
         result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
     }
 
-    def "can create multiple files output with full user configuration"() {
+    def "can create multiple files with full user configuration"() {
         given:
         Path outputDir = Paths.get(projectDir.path, "build/full")
         Path multiFileOutputDir = Paths.get("multi")
@@ -91,8 +91,11 @@ class DslMultiFileTest extends AbstractGoorvyTest {
 
                 multiFile {
                     example {
-                        template = "multi.vm"
                         outputDir = new File("${absDir}")
+                        template = "multi.vm"
+                        formatOutput = { st ->
+                            st.getShortname() + ".java"
+                        } 
                     }
                 }
             }
@@ -103,21 +106,25 @@ class DslMultiFileTest extends AbstractGoorvyTest {
 
         then:
         Files.exists(absDir)
+        Files.list(absDir).count() > 1
     }
 
     def "outputDir is relative to dsl.outputDir when not absolute"() {
         given:
         Path dslOutputDir = Paths.get(projectDir.path, "build")
-        Path relativeFile = Paths.get("example.txt")
-        Path expected = dslOutputDir.resolve(relativeFile)
+        Path relativeDir = Paths.get("relativeDir")
+        Path expected = dslOutputDir.resolve(relativeDir)
         buildFile << """
             dsl {   
-                outputDir = new File("$dslOutputDir")
-            
-                singleFile {
+                outputDir = new File("${dslOutputDir}")
+
+                multiFile {
                     example {
+                        outputDir = new File("${relativeDir}")
                         template = "multi.vm"
-                        outputFile = new File("${relativeFile}")
+                        formatOutput = { st ->
+                            st.getShortname() + ".java"
+                        } 
                     }
                 }
             }
@@ -128,6 +135,7 @@ class DslMultiFileTest extends AbstractGoorvyTest {
 
         then:
         Files.exists(expected)
+        Files.list(expected).count() > 1
     }
 
     private void writeSettingsFile() {
