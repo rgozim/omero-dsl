@@ -1,6 +1,6 @@
 package org.openmicroscopy
 
-class AbstractGoorvyTest extends AbstractTest {
+class AbstractGroovyTest extends AbstractTest {
 
     public static final String PROJECT_NAME = 'omero-dsl-pluginr'
 

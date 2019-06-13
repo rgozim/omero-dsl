@@ -6,24 +6,9 @@ import org.gradle.testkit.runner.TaskOutcome
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 
-class DslSingleFileTest extends AbstractGoorvyTest {
+class DslSingleFileTest extends AbstractBaseTest {
 
-    File databaseTypesDir
-    File mappingsDir
-    File templatesDir
-
-    def setup() {
-        databaseTypesDir = new File(projectDir, "src/main/resources/properties")
-        mappingsDir = new File(projectDir, "src/main/resources/mappings")
-        templatesDir = new File(projectDir, "src/main/resources/templates")
-
-        writeSettingsFile()
-        copyDatabaseTypes(databaseTypesDir)
-        copyOmeXmls(mappingsDir)
-        copyTemplates(templatesDir)
-    }
 
     def "can create single file output  with minimal configuration"() {
         given:
@@ -118,34 +103,6 @@ class DslSingleFileTest extends AbstractGoorvyTest {
 
         then:
         Files.exists(expected)
-    }
-
-    private void writeSettingsFile() {
-        settingsFile << groovySettingsFile()
-    }
-
-    private void copyDatabaseTypes(File outputDir) {
-        Path psql = Paths.get(Paths.getResource("/psql-types.properties").toURI())
-        copyFile(psql, outputDir.toPath())
-    }
-
-    private void copyOmeXmls(File outputDir) {
-        Path type = Paths.get(Paths.getResource("/type.ome.xml").toURI())
-        copyFile(type, outputDir.toPath())
-    }
-
-    private void copyTemplates(File outputDir) {
-        Path type = Paths.get(Paths.getResource("/single.vm").toURI())
-        copyFile(type, outputDir.toPath())
-    }
-
-    private void copyFile(Path fileToCopy, Path targetDir) {
-        if (!Files.exists(targetDir)) {
-            Files.createDirectories(targetDir)
-        }
-
-        Path targetFile = targetDir.resolve(fileToCopy.getFileName())
-        Files.copy(fileToCopy, targetFile, StandardCopyOption.REPLACE_EXISTING)
     }
 
 }
