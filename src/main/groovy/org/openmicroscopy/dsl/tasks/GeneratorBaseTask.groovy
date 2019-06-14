@@ -76,7 +76,8 @@ abstract class GeneratorBaseTask extends DefaultTask {
     @TaskAction
     void apply() {
         // Create velocity engine with config
-        VelocityEngine ve = new VelocityEngine(velocityConfig.get())
+        VelocityEngine ve = new VelocityEngine()
+        ve.init(velocityConfig.getOrElse(new Properties()))
 
         // Build our file generator
         def builder = createGenerator()
