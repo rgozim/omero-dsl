@@ -28,8 +28,6 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -50,8 +48,6 @@ import javax.inject.Inject
 @SuppressWarnings("UnstableApiUsage")
 @CompileStatic
 abstract class GeneratorBaseTask extends DefaultTask {
-
-    private static final Logger Log = Logging.getLogger(GeneratorBaseTask)
 
     private final RegularFileProperty template = project.objects.fileProperty()
 
