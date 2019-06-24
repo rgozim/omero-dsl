@@ -88,14 +88,14 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FilesGeneratorTask> addMultiFileGenTask(MultiFileConfig ext) {
-        Provider<String> taskName = dsl.createTaskName(ext.name)
+        String taskName = dsl.createTaskName(ext.name)
 
-        project.tasks.register(taskName.get(), FilesGeneratorTask, new Action<FilesGeneratorTask>() {
+        project.tasks.register(taskName, FilesGeneratorTask, new Action<FilesGeneratorTask>() {
             @Override
             void execute(FilesGeneratorTask task) {
                 task.group = GROUP
                 task.formatOutput.set(ext.formatOutput)
-                task.velocityConfig.set(dsl.velocity.data)
+                task.velocityConfig.set(dsl.velocityConfig.data)
                 task.outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
                 task.template.set(findTemplateProvider(dsl.templates, ext.template))
                 task.databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
@@ -105,13 +105,13 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
     }
 
     TaskProvider<FileGeneratorTask> addSingleFileGenTask(SingleFileConfig ext) {
-        Provider<String> taskName = dsl.createTaskName(ext.name)
+        String taskName = dsl.createTaskName(ext.name)
 
-        project.tasks.register(taskName.get(), FileGeneratorTask, new Action<FileGeneratorTask>() {
+        project.tasks.register(taskName, FileGeneratorTask, new Action<FileGeneratorTask>() {
             @Override
             void execute(FileGeneratorTask task) {
                 task.group = GROUP
-                task.velocityConfig.set(dsl.velocity.data)
+                task.velocityConfig.set(dsl.velocityConfig.data)
                 task.outputFile.set(getOutputFileProvider(dsl.outputDir, ext.outputFile))
                 task.template.set(findTemplateProvider(dsl.templates, ext.template))
                 task.databaseType.set(findDatabaseTypeProvider(dsl.databaseTypes, dsl.database))
