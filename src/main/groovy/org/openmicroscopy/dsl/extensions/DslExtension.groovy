@@ -32,8 +32,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.openmicroscopy.dsl.DslPluginBase
 
-import java.util.concurrent.Callable
-
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_DB_TYPE
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_OME_XML
 import static org.openmicroscopy.dsl.FileTypes.PATTERN_TEMPLATE
@@ -43,20 +41,38 @@ class DslExtension {
 
     private final Project project
 
-    final VelocityConfig velocity = new VelocityConfig()
+    private final VelocityConfig velocity = new VelocityConfig()
 
     final NamedDomainObjectContainer<MultiFileConfig> multiFile
 
     final NamedDomainObjectContainer<SingleFileConfig> singleFile
 
+    /**
+     * Represents a collection of `.ome.xml` mapping files
+     */
     final ConfigurableFileCollection omeXmlFiles
 
+    /**
+     * Represents a collection of `-types.properties` files
+     */
     final ConfigurableFileCollection databaseTypes
 
+    /**
+     * Represents a collection of VelocityEngine `.vm` files
+     */
     final ConfigurableFileCollection templates
 
+    /**
+     * The database type we want to build OMERO for (default is Postgres)
+     */
     final Property<String> database
 
+    /**
+     * The output directory to write generated files to.
+     * <p>
+     * This can be overridden by using an absolute path in multiFile
+     * or singleFile configs.
+     */
     final DirectoryProperty outputDir
 
     DslExtension(Project project,
@@ -83,6 +99,7 @@ class DslExtension {
 
     /**
      * Creates a name for task created from this extension.
+     * <p>
      * It prefixes a string the beginning of {@param name} and appends {@code this.database}
      *
      * e.g. "combined" results in "generateCombinedPsql"
@@ -90,19 +107,72 @@ class DslExtension {
      * @param name
      * @return the name used for creating tasks from this extension
      */
-    Provider<String> createTaskName(String name) {
-        project.providers.provider(new Callable<String>() {
-            @Override
-            String call() throws Exception {
-                return DslPluginBase.TASK_PREFIX_GENERATE + name.capitalize() + database.get().capitalize()
-            }
-        })
+    String createTaskName(String name) {
+        return DslPluginBase.TASK_PREFIX_GENERATE + name.capitalize() + database.get().capitalize()
     }
 
+    /**
+     * Configures the options of the VelocityEngine.
+     *
+     * See <a href="https://velocity.apache.org/engine/2.1/configuration.html">https://velocity.apache.org</a>
+     *
+     * <pre class='autoTested'>
+     * dsl {
+     *    velocityConfig {
+     *        // Configure fields here
+     *    }
+     * }
+     * </pre>
+     *
+     * @return
+     */
+    void velocityConfig(Action<? super VelocityConfig> action) {
+        action.execute(this.velocity)
+    }
+
+    /**
+     * Configures the container of possible source/code files to generate.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'org.openmicroscopy.dsl'
+     *
+     * dsl {
+     *   multiFile {
+     *     // Create a java source code generation using object.vm as template
+     *     java {
+     *          template "object.vm"
+     *          outputDir "java"
+     *          formatOutput = { st ->
+     *             "${st.getPackage()}/${st.getShortname()}.java"
+     *        }
+     *     }
+     * }
+     * </pre>
+     *
+     * @param action
+     */
     void multiFile(Action<? super NamedDomainObjectContainer<MultiFileConfig>> action) {
         action.execute(this.multiFile)
     }
 
+    /**
+     * Configures the container of possible resources to generate.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'org.openmicroscopy.dsl'
+     *
+     * dsl {
+     *    singleFile {
+     *     // Create a single resource file using cfg.vm as the velocity template
+     *     hibernate {
+     *         template "cfg.vm"
+     *         outputFile "resources/hibernate.cfg.xml"
+     *     }
+     * }
+     * </pre>
+     *
+     * @param action
+     */
     void singleFile(Action<? super NamedDomainObjectContainer<SingleFileConfig>> action) {
         action.execute(this.singleFile)
     }
@@ -131,14 +201,6 @@ class DslExtension {
         this.templates.setFrom files
     }
 
-    void velocityConfig(Action<? super VelocityConfig> action) {
-        setTemplates(action)
-    }
-
-    void setTemplates(Action<? super VelocityConfig> action) {
-        action.execute(velocity)
-    }
-
     void setOutputDir(Provider<? extends Directory> dir) {
         this.outputDir.set(dir)
     }
@@ -155,4 +217,7 @@ class DslExtension {
         this.database.set(db)
     }
 
+    VelocityConfig getVelocityConfig() {
+        return velocity
+    }
 }
