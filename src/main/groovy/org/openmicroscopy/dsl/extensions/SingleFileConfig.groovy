@@ -28,6 +28,11 @@ import org.gradle.api.provider.Provider
 @CompileStatic
 class SingleFileConfig extends BaseFileConfig {
 
+    /**
+     * The file that will be generated.
+     * <p>
+     * If outputFile is not absolute, it is relative to {@link DslExtension#outputDir}
+     */
     final Property<File> outputFile
 
     SingleFileConfig(String name, Project project) {

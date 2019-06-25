@@ -26,14 +26,29 @@ import ome.dsl.velocity.MultiFileGenerator
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
+import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
 import org.openmicroscopy.dsl.utils.SemanticTypeClosure
 import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
 
 @CompileStatic
 class MultiFileConfig extends BaseFileConfig {
 
+    /**
+     * The output directory to write files to.
+     * <p>
+     * If outputDir is not absolute, it is relative to {@link DslExtension#outputDir}
+     */
     final Property<File> outputDir
 
+    /**
+     * Allows the task of type {@link MultiFileGeneratorFactory} created
+     * from this configuration to have control of the names of it's generated files
+     * <pre class='autoTested'>
+     * formatOutput = { SemanticType st ->
+     *    "${st.getPackage()}/${st.getShortname()}.java"
+     * }
+     * </pre>
+     */
     final Property<MultiFileGenerator.FileNameFormatter> formatOutput
 
     MultiFileConfig(String name, Project project) {

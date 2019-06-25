@@ -32,8 +32,14 @@ class BaseFileConfig {
 
     final Project project
 
+    /**
+     * Collection of '.ome.xml' files specifying Semantic types
+     */
     final ConfigurableFileCollection omeXmlFiles
 
+    /**
+     * Template file to pass to VelocityEngine
+     */
     final Property<File> template
 
     BaseFileConfig(String name, Project project) {

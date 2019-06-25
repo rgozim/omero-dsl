@@ -4,6 +4,7 @@
 # Eclipse project files
 *.classpath
 *.project
+*.settings
 
 # OSX store file
 *.DS_Store
