@@ -56,13 +56,41 @@ class DslSingleFileTest extends AbstractBaseTest {
         result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
     }
 
+    def "can generate single file  with inputs configured as directories"() {
+        given:
+        String outputDir = "build"
+        String outputFile = "example.txt"
+        buildFile << """
+            dsl {   
+                database = "psql"
+                outputDir = file("$outputDir")
+                omeXmlFiles = files("${mappingsDir}")
+                databaseTypes = files("${databaseTypesDir}")
+                templates = files("${templatesDir}")
+                    
+                singleFile {
+                    example {
+                        template = "single.vm"
+                        outputFile = "$outputFile"
+                    }
+                }
+            }
+        """
+
+        when:
+        build("generateExamplePsql")
+
+        then:
+        File file = new File(projectDir, "$outputDir/$outputFile")
+        file.exists()
+    }
+
     def "outputFile overrides dsl.outputDir when absolute"() {
         given:
-        Path dslOutputDir = Paths.get(projectDir.path, "build")
         Path absFile = Paths.get(projectDir.path, "some/other/location/example.txt")
         buildFile << """
             dsl {   
-                outputDir = new File("${dslOutputDir}")
+                outputDir = file("build")
 
                 singleFile {
                     example {

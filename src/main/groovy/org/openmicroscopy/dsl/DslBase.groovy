@@ -33,7 +33,7 @@ abstract class DslBase {
 
     static File findInCollection(FileCollection collection, File file, String include) {
         Set<File> files = getFiles(collection, include)
-        Log.info("Looking for file with name $file.name from the following")
+        Log.info("Looking for file with name $file.name")
         files.find { File f ->
             Log.info("$f")
             f.name == file.name
