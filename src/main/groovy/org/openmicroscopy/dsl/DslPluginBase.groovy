@@ -94,7 +94,7 @@ class DslPluginBase extends DslBase implements Plugin<Project> {
             @Override
             void execute(FilesGeneratorTask task) {
                 task.group = GROUP
-                task.formatOutput.set(ext.formatOutput)
+                task.formatOutput(ext.getFormatOutput())
                 task.velocityConfig.set(dsl.velocityConfig.data)
                 task.outputDir.set(getOutputDirProvider(dsl.outputDir, ext.outputDir))
                 task.template.set(findTemplateProvider(dsl.templates, ext.template))
