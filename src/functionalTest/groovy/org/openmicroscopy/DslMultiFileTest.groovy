@@ -1,7 +1,5 @@
 package org.openmicroscopy
 
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.TaskOutcome
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -9,8 +7,16 @@ import java.nio.file.Paths
 
 class DslMultiFileTest extends AbstractBaseTest {
 
+    File conventionOutputDir
+
+    def setup() {
+        conventionOutputDir = new File(projectDir, "build/generated/sources/dsl/psql")
+    }
+
     def "can create multiple files with minimal configuration"() {
         given:
+        // Output dir is determined by name of configuration
+        File multiFileConventionOutputDir = new File(conventionOutputDir, "example")
         buildFile << """
             dsl {   
                 multiFile {
@@ -25,10 +31,11 @@ class DslMultiFileTest extends AbstractBaseTest {
         """
 
         when:
-        BuildResult result = build("generateExamplePsql")
+        build("generateExamplePsql")
 
         then:
-        result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
+        File[] generatedFiles = multiFileConventionOutputDir.listFiles()
+        generatedFiles.length > 0
     }
 
     def "can create multiple files with full user configuration"() {
@@ -40,7 +47,7 @@ class DslMultiFileTest extends AbstractBaseTest {
         buildFile << """
             dsl {   
                 database = "psql"
-                outputDir = file("${outputDir}")
+                outputDir = new File("${outputDir}")
                 omeXmlFiles = fileTree(dir: "${mappingsDir}", include: "**/*.ome.xml")
                 databaseTypes = fileTree(dir: "${databaseTypesDir}", include: "**/*.properties")
                 templates = fileTree(dir: "${templatesDir}", include: "**/*.vm")

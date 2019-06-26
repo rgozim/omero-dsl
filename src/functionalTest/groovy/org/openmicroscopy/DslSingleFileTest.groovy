@@ -1,41 +1,48 @@
 package org.openmicroscopy
 
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.TaskOutcome
-
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
+
 class DslSingleFileTest extends AbstractBaseTest {
 
+    File conventionOutputDir
+
+    def setup() {
+        conventionOutputDir = new File(projectDir, "build/generated/sources/dsl/psql")
+    }
 
     def "can create single file output  with minimal configuration"() {
         given:
+        String outputFile = "example.txt"
         buildFile << """
             dsl {   
                 singleFile {
                     example {
                         template = "single.vm"
-                        outputFile = "example.txt"
+                        outputFile = "$outputFile"
                     }
                 }
             }
         """
 
         when:
-        BuildResult result = build("generateExamplePsql")
+        build("generateExamplePsql")
 
         then:
-        result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
+        File result = new File(conventionOutputDir, outputFile)
+        result.exists()
     }
 
     def "can create single file output with full user configuration"() {
         given:
+        String customOutputDir = "some/output/dir"
+        String outputFile = "example.txt"
         buildFile << """
             dsl {   
                 database = "psql"
-                outputDir = file("some/output/dir")
+                outputDir = file("$customOutputDir")
                 omeXmlFiles = fileTree(dir: "${mappingsDir}", include: "**/*.ome.xml")
                 databaseTypes = fileTree(dir: "${databaseTypesDir}", include: "**/*.properties")
                 templates = fileTree(dir: "${templatesDir}", include: "**/*.vm")
@@ -43,17 +50,18 @@ class DslSingleFileTest extends AbstractBaseTest {
                 singleFile {
                     example {
                         template = "single.vm"
-                        outputFile = "example.txt"
+                        outputFile = "$outputFile"
                     }
                 }
             }
         """
 
         when:
-        BuildResult result = build("generateExamplePsql")
+        build("generateExamplePsql")
 
         then:
-        result.task(":generateExamplePsql").outcome == TaskOutcome.SUCCESS
+        Path result = projectDir.toPath().resolve(Paths.get(customOutputDir, outputFile))
+        Files.exists(result)
     }
 
     def "can generate single file  with inputs configured as directories"() {
@@ -87,15 +95,13 @@ class DslSingleFileTest extends AbstractBaseTest {
 
     def "outputFile overrides dsl.outputDir when absolute"() {
         given:
-        Path absFile = Paths.get(projectDir.path, "some/other/location/example.txt")
+        File absFile = new File(projectDir, "some/other/location/example.txt")
         buildFile << """
             dsl {   
-                outputDir = file("build")
-
                 singleFile {
                     example {
                         template = "single.vm"
-                        outputFile = new File("${absFile}")
+                        outputFile = new File("$absFile")
                     }
                 }
             }
@@ -105,7 +111,7 @@ class DslSingleFileTest extends AbstractBaseTest {
         build("generateExamplePsql")
 
         then:
-        Files.exists(absFile)
+        absFile.exists()
     }
 
     def "outputFile is relative to dsl.outputDir when not absolute"() {
