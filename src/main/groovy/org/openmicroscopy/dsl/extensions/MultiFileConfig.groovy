@@ -22,13 +22,10 @@ package org.openmicroscopy.dsl.extensions
 
 import groovy.transform.CompileStatic
 import ome.dsl.SemanticType
-import ome.dsl.velocity.MultiFileGenerator
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.openmicroscopy.dsl.factories.MultiFileGeneratorFactory
-import org.openmicroscopy.dsl.utils.SemanticTypeClosure
-import org.openmicroscopy.dsl.utils.SemanticTypeTransformer
 
 @CompileStatic
 class MultiFileConfig extends BaseFileConfig {
@@ -40,56 +37,91 @@ class MultiFileConfig extends BaseFileConfig {
      */
     final Property<File> outputDir
 
-    /**
-     * Allows the task of type {@link MultiFileGeneratorFactory} created
-     * from this configuration to have control of the names of it's generated files
-     * <pre class='autoTested'>
-     * formatOutput = { SemanticType st ->
-     *    "${st.getPackage()}/${st.getShortname()}.java"
-     * }
-     * </pre>
-     */
-    final Property<MultiFileGenerator.FileNameFormatter> formatOutput
+
+    private Transformer<? extends String, ? super SemanticType> formatOutput =
+            new Transformer<String, SemanticType>() {
+                @Override
+                String transform(SemanticType semanticType) {
+                    return semanticType.getShortname()
+                }
+            }
 
     MultiFileConfig(String name, Project project) {
         super(name, project)
         this.outputDir = project.objects.property(File)
-        this.formatOutput = project.objects.property(MultiFileGenerator.FileNameFormatter)
 
         // Default output dir is the name of the configuration (e.g. java, combined)
         this.outputDir.convention(new File(name))
     }
 
+    /**
+     * see {@link #setOutputDir(java.io.File)}
+     *
+     * @param dir directory to set
+     */
     void outputDir(File dir) {
         setOutputDir(dir)
     }
 
+    /**
+     * see {@link #setOutputDir(java.io.File)}
+     *
+     * @param dir directory to set
+     */
     void outputDir(String dir) {
         setOutputDir(dir)
     }
 
+    /**
+     * see {@link #setOutputDir(java.io.File)}
+     *
+     * @param dir directory to set
+     */
     void setOutputDir(String dir) {
         setOutputDir(new File(dir))
     }
 
+    /**
+     * Helper method to allow setting output dir using file type
+     *
+     * see {@link #outputDir}
+     *
+     * @param dir directory to set
+     */
     void setOutputDir(File dir) {
         this.outputDir.set(dir)
     }
 
-    void formatOutput(final Transformer<? extends String, ? super SemanticType> transformer) {
-        setFormatOutput(transformer)
+    /**
+     * Allows the task of type {@link MultiFileGeneratorFactory} created
+     * from this configuration to have control of the names of it's generated files
+     *
+     * <pre class='autoTested'>
+     * formatOutput { SemanticType st -> {
+     *        ${st.getPackage()}/${st.getShortname()}.java"
+     * }
+     * </pre>
+     */
+    void formatOutput(Transformer<? extends String, ? super SemanticType> transformer) {
+        setFormatOutput transformer
     }
 
-    void formatOutput(Closure closure) {
-        setFormatOutput(closure)
+    /**
+     * Allows the task of type {@link MultiFileGeneratorFactory} created
+     * from this configuration to have control of the names of it's generated files
+     *
+     * <pre class='autoTested'>
+     * formatOutput = { SemanticType st -> {
+     *        ${st.getPackage()}/${st.getShortname()}.java"
+     * }
+     * </pre>
+     */
+    void setFormatOutput(Transformer<? extends String, ? super SemanticType> transformer) {
+        formatOutput = transformer
     }
 
-    void setFormatOutput(final Transformer<? extends String, ? super SemanticType> transformer) {
-        formatOutput.set(new SemanticTypeTransformer(transformer))
-    }
-
-    void setFormatOutput(Closure closure) {
-        formatOutput.set(new SemanticTypeClosure(closure))
+    Transformer<? extends String, ? super SemanticType> getFormatOutput() {
+        return formatOutput
     }
 
 }

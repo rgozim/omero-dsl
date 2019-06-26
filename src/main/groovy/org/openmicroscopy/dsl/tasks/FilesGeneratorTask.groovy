@@ -21,11 +21,14 @@
 package org.openmicroscopy.dsl.tasks
 
 import groovy.transform.CompileStatic
-import groovy.transform.Internal
+import ome.dsl.SemanticType
 import ome.dsl.velocity.Generator
 import ome.dsl.velocity.MultiFileGenerator
+import org.gradle.api.Transformer
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 
 @SuppressWarnings("UnstableApiUsage")
@@ -41,7 +44,7 @@ class FilesGeneratorTask extends GeneratorBaseTask {
     /**
      * Default callback returns SemanticType.shortName
      */
-    private final Property<MultiFileGenerator.FileNameFormatter> formatOutput =
+    private Property<MultiFileGenerator.FileNameFormatter> formatOutput =
             project.objects.property(MultiFileGenerator.FileNameFormatter)
 
     @Override
@@ -56,9 +59,30 @@ class FilesGeneratorTask extends GeneratorBaseTask {
         return this.outputDir
     }
 
-    @Internal
-    Property<MultiFileGenerator.FileNameFormatter> getFormatOutput() {
-        return this.formatOutput
+    @Nested
+    Provider<MultiFileGenerator.FileNameFormatter> getFormatOutput() {
+        return formatOutput
+    }
+
+    void formatOutput(Transformer<? extends String, ? super SemanticType> transformer) {
+        setFormatOutput(transformer)
+    }
+
+    void setFormatOutput(Transformer<? extends String, ? super SemanticType> transformer) {
+        this.formatOutput.set(new FileNameFormatter(transformer))
+    }
+
+    private static class FileNameFormatter implements MultiFileGenerator.FileNameFormatter {
+        Transformer<? extends String, ? super SemanticType> transformer
+
+        FileNameFormatter(Transformer<? extends String, ? super SemanticType> transformer) {
+            this.transformer = transformer
+        }
+
+        @Override
+        String format(SemanticType semanticType) {
+            return transformer.transform(semanticType)
+        }
     }
 
 }

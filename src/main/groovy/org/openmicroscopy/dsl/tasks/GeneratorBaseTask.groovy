@@ -22,6 +22,8 @@ package org.openmicroscopy.dsl.tasks
 
 import groovy.transform.CompileStatic
 import ome.dsl.velocity.Generator
+import ome.dsl.velocity.MultiFileGenerator
+import ome.dsl.velocity.SingleFileGenerator
 import org.apache.velocity.app.VelocityEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -45,7 +47,11 @@ import org.openmicroscopy.dsl.FileTypes
 
 import javax.inject.Inject
 
-@SuppressWarnings("UnstableApiUsage")
+/**
+ * Base class responsible for common configurable properties and
+ * creating a the generator class - either {@link SingleFileGenerator} or
+ * {@link MultiFileGenerator}
+ */
 @CompileStatic
 abstract class GeneratorBaseTask extends DefaultTask {
 
@@ -94,7 +100,7 @@ abstract class GeneratorBaseTask extends DefaultTask {
         return src.matching(omeXmlPatternSet).files
     }
 
-    @Internal
+    @Input
     Provider<Properties> getDatabaseTypes() {
         databaseType.map { RegularFile file ->
             Properties databaseTypeProps = new Properties()
@@ -103,7 +109,7 @@ abstract class GeneratorBaseTask extends DefaultTask {
         }
     }
 
-    @Internal
+    @Input
     Provider<String> getProfile() {
         // Determine database type
         databaseType.map { RegularFile file ->
