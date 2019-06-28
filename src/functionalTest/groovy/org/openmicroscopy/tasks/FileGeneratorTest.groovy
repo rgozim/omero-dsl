@@ -15,7 +15,7 @@ class FileGeneratorTest extends AbstractBaseTest {
                 outputFile = file("$outputFile")
                 template = file("$templatesDir/single.vm")
                 databaseType = file("$databaseTypesDir/psql-types.properties")
-                mappingFiles.from(files("$mappingsDir))
+                mappingFiles.from(files("$mappingsDir"))
             }
         """
 
